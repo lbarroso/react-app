@@ -1,0 +1,28 @@
+.success-main-container {
+  background-color: #fff;
+  height: 100vh;
+}
+
+.success-body-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 65px);
+}
+
+.success-body-container .success-image {
+  width: 520px;
+  margin-bottom: 75px;
+}
+
+.success-body-container .main-text {
+  font-size: 62px;
+  color: #797979;
+  margin-bottom: 15px;
+}
+
+.success-body-container .loading-text {
+  font-size: 42px;
+  color: #222222;
+}

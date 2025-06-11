@@ -1,0 +1,38 @@
+.header-main-conatiner {
+  display: flex;
+  align-items: space-between;
+  justify-content: space-between;
+  height: 65px;
+  width: 100%;
+  background-color: #e3e8ec;
+}
+
+.header-image-container {
+  display: flex;
+  justify-content: center;
+  height: 65px;
+  width: 150px;
+  /* background-color: green; */
+}
+
+.header-image-container img {
+  height: 98px;
+  width: auto;
+}
+
+.user-info-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 65px;
+  width: 320px;
+  /* background-color: aquamarine; */
+}
+
+.user-info-name {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-right: 10px;
+  font-size: 12px;
+}

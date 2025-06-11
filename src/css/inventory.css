@@ -1,0 +1,74 @@
+.inventory-main-container {
+  height: 100vh;
+}
+
+.inventory-body-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  height: calc(100vh - 65px);
+  /* background-color: rgb(42, 112, 124); */
+}
+
+.inventory-actions-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: 85px;
+  width: 100%;
+  /* background-color: rgb(204, 41, 41); */
+}
+
+.inventory-table-container {
+  width: 100%;
+  /* background-color: rgba(42, 65, 124, 0.291); */
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 25px 0;
+  font-size: 0.9em;
+  min-width: 400px;
+  border-radius: 3px 3px 0 0;
+  overflow: hidden;
+  /* box-shadow: 0 0 20px rgba(0, 0, 0, 0.15); */
+}
+
+.inventory-table thead tr {
+  background-color: #e3e8ec;
+  text-align: left;
+  font-weight: bold;
+}
+
+.inventory-table th,
+.inventory-table td {
+  padding: 12px 15px;
+}
+
+.inventory-table tbody tr {
+  border-bottom: 1px solid #000000;
+}
+
+.inventory-table tbody tr:hover {
+  cursor: pointer;
+  /* font-weight: bold; */
+}
+
+.inventory-table tbody tr:nth-of-type(even) {
+  background-color: #f3f3f3;
+}
+
+.inventory-table tbody tr:last-of-type {
+  border-bottom: 2px solid #2c2c2c;
+}
+
+.inventory-table tbody tr.warning-row {
+  background-color: #faf03ba4;
+}
+
+.inventory-table tbody tr.danger-row {
+  background-color: #fb3a3ac3;
+  color: #fff;
+}
