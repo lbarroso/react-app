@@ -1,5 +1,6 @@
 // components/ProductCard.jsx
 import './ProductCard.css'
+import 'react-bootstrap';
 
 export default function ProductCard({ producto, cantidad, agregarAlCarrito, aumentarCantidad, disminuirCantidad }) {
   return (

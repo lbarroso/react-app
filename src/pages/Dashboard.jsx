@@ -115,8 +115,14 @@ export default function Dashboard () {
     <div className="dashboard-container">
       <header className="navbar">
         <div className="navbar-content">
-          <div className="left-section">
-            <span className="logo">📦 <strong>Pedidos</strong></span>
+          <div className="left-section d-flex align-items-center gap-2">
+            
+          <img
+    src="/logoTdaBienestar.png"
+    alt="Logo Tienda Bienestar"
+    className="logo-img img-fluid"
+  />
+
             <span className={`status-icon ${online ? 'online' : 'offline'}`}>
               {online ? '🌐' : '⚠️'}
             </span>
@@ -129,9 +135,9 @@ export default function Dashboard () {
               disabled={totalEnCarrito === 0}
               onClick={() => setModalAbierto(true)}
             >
-              🛒 Carrito{totalEnCarrito > 0 ? <sup>{totalEnCarrito}</sup> : ''}
+              🛒 {totalEnCarrito > 0 ? <sup>{totalEnCarrito}</sup> : ''}
             </button>
-            <button className="logout-button" onClick={cerrarSesion}>Salir</button>
+            
           </div>
         </div>
       </header>
@@ -167,12 +173,12 @@ export default function Dashboard () {
       </main>
 
       {scrollVisible && (
-        <button
+        <a
           className="scroll-top-button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
           ⬆️
-        </button>
+        </a>
       )}
 
       <CarritoModal

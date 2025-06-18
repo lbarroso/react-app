@@ -90,17 +90,18 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
           ) : (
             productosCarrito.map(item => (
               <div key={item.product_id} className="carrito-producto">
-                <img src={item.image} alt="img" />
+                <img src={`/imagenes/${item.image || 'imagen.jpg'}`} alt="img" />
+                
                 <div className="carrito-info">
                   <h4>{item.name}</h4>
-                  <small>${item.unit_price.toFixed(2)} x {item.quantity} / {item.unit}</small>
+                  <small> {item.code} {item.unit}</small>
                   <div><strong>${item.total_price.toFixed(2)}</strong></div>
                 </div>
                 <div className="controles-cantidad">
                   <button onClick={() => disminuir(item)}>-</button>
                   <span>{item.quantity}</span>
                   <button onClick={() => aumentar(item)}>+</button>
-                  <button onClick={() => eliminar(item.product_id)}>🗑</button>
+                  <button onClick={() => eliminar(item.product_id)}  style={{ backgroundColor: '#9f2241', color: 'white' }}>🗑</button>                 
                 </div>
               </div>
             ))

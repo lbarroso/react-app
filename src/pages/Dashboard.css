@@ -203,3 +203,15 @@ html, body {
   margin-bottom: 10px;
   max-height: 160px;
 }
+
+/* styles/custom.css (o donde lleves tu branding) */
+.logo-img {
+  height: 32px;          /* alto deseado */
+  width: auto;           /* mantiene proporción */
+}
+
+@media (max-width: 575.98px) {  /* móviles */
+  .logo-img {
+    height: 26px;        /* un poco más pequeño en pantallas estrechas */
+  }
+}
