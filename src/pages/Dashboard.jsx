@@ -116,13 +116,7 @@ export default function Dashboard () {
       <header className="navbar">
         <div className="navbar-content">
           <div className="left-section d-flex align-items-center gap-2">
-            
-          <img
-    src="/logoTdaBienestar.png"
-    alt="Logo Tienda Bienestar"
-    className="logo-img img-fluid"
-  />
-
+            <img src="/logoTdaBienestar.png" alt="Logo Tienda Bienestar" className="logo-img img-fluid"/>
             <span className={`status-icon ${online ? 'online' : 'offline'}`}>
               {online ? '🌐' : '⚠️'}
             </span>
