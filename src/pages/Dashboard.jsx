@@ -14,7 +14,8 @@ import {
 import useOnlineStatus from '../utils/useOnlineStatus'
 import ProductCard from '../components/ProductCard'
 import CarritoModal from '../components/CarritoModal'
-import './Dashboard.css'
+import './Dashboard.css';
+import './Navbar.css';
 
 export default function Dashboard () {
   const [productos, setProductos] = useState([])
@@ -115,21 +116,22 @@ export default function Dashboard () {
     <div className="dashboard-container">
       <header className="navbar">
         <div className="navbar-content">
-          <div className="left-section d-flex align-items-center gap-2">
+          <div className="navbar-brand">
             <img src="/logoTdaBienestar.png" alt="Logo Tienda Bienestar" className="logo-img img-fluid"/>
             <span className={`status-icon ${online ? 'online' : 'offline'}`}>
               {online ? '🌐' : '⚠️'}
             </span>
+            <span className="navbar-subtitle">Sistema de Pedidos PWA</span>
           </div>
 
-          <div className="right-section">
-            <button className="nav-button">Pedidos</button>
+          <div className="nav-btn orders-btn">
+            <button className="nav-button">📋 Pedidos</button>
             <button
               className="nav-button"
               disabled={totalEnCarrito === 0}
               onClick={() => setModalAbierto(true)}
             >
-              🛒 {totalEnCarrito > 0 ? <sup>{totalEnCarrito}</sup> : ''}
+              🛒 Carrito{totalEnCarrito > 0 ? <sup className="cart-badge">{totalEnCarrito}</sup> : ''}
             </button>
             
           </div>
@@ -138,13 +140,13 @@ export default function Dashboard () {
 
       <main className="main-content">
         <div className="buscador-box">
-          <span className="lupa-icon">🔍</span>
+          <span className="search-icon">🔍</span>
           <input
             type="text"
             placeholder="Buscar producto por nombre o código"
             value={busqueda}
             onChange={e => setBusqueda(e.target.value)}
-            className="input-buscador"
+            className="search-input"
           />
         </div>
 

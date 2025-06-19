@@ -1,12 +1,21 @@
 // components/ProductCard.jsx
 import './ProductCard.css'
 import 'react-bootstrap';
+import useOnlineStatus from '../utils/useOnlineStatus';
 
 export default function ProductCard({ producto, cantidad, agregarAlCarrito, aumentarCantidad, disminuirCantidad }) {
+
+  const online = useOnlineStatus()
+
+  const imagen = online
+    ? `/imagenes/${producto.image || 'imagen.jpg'}`
+    : '/imagenes/imagen.jpg' // imagen por defecto para offline
+	
   return (
     <div className="product-card">
+      <div className="product-image">
       <img
-        src={`/imagenes/${producto.imagen || 'imagen.jpg'}`}
+        src={imagen}
         alt={producto.name}
         className="product-image"
         loading="lazy"
@@ -14,7 +23,8 @@ export default function ProductCard({ producto, cantidad, agregarAlCarrito, aume
           e.target.src = '/imagenes/imagen.jpg'
         }}
       />
-      <div className="product-name">{producto.name}</div>
+      </div>
+      <div className="product-name">  {producto.name?.length > 25 ? producto.name.slice(0, 25) + '…' : producto.name} </div>
       <div className="product-code"> {producto.unit} {producto.code} </div>
       <div className="product-price">${parseFloat(producto.price).toFixed(2)}</div>
       <div className="product-stock">{producto.stock} disponibles</div>

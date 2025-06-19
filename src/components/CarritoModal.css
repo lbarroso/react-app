@@ -140,3 +140,12 @@
   background-color: #ccc;
   color: #000;
 }
+
+.input-cantidad {
+  width: 50px;
+  text-align: center;
+  font-size: 1rem;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}

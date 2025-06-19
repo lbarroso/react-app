@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react'
-import './CarritoModal.css'
+import { useEffect, useState } from 'react';
+import './CarritoModal.css';
 import {
   obtenerProductosDelCarrito,
   actualizarCantidadEnCarrito,
   eliminarItemDelCarrito,
   obtenerProductosLocal
-} from '../utils/indexedDB'
+} from '../utils/indexedDB';
+import useOnlineStatus from '../utils/useOnlineStatus';
 
 export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
-  const [productosCarrito, setProductosCarrito] = useState([])
+  const [productosCarrito, setProductosCarrito] = useState([]);
+  const online = useOnlineStatus();
 
   useEffect(() => {
     if (!abierto) return
@@ -26,7 +28,8 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
         ...item,
         name: producto.name || `ID ${item.product_id}`,
         unit: producto.unit || '',
-        image: producto.image || '/imagenes/placeholder.png'
+        image: producto.image || '/imagenes/placeholder.png',
+		code: producto.code
       }
     })
 
@@ -88,23 +91,42 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
           {productosCarrito.length === 0 ? (
             <p>Tu carrito está vacío.</p>
           ) : (
-            productosCarrito.map(item => (
-              <div key={item.product_id} className="carrito-producto">
-                <img src={`/imagenes/${item.image || 'imagen.jpg'}`} alt="img" />
-                
-                <div className="carrito-info">
-                  <h4>{item.name}</h4>
-                  <small> {item.code} {item.unit}</small>
-                  <div><strong>${item.total_price.toFixed(2)}</strong></div>
+            productosCarrito.map(item => {
+              const imagen = online
+                ? `/imagenes/${item.image || 'imagen.jpg'}`
+                : '/imagenes/imagen.jpg'  // imagen fija offline
+
+              return (
+                <div key={item.product_id} className="carrito-producto">
+                  <img src={imagen} alt="img" />
+                  <div className="carrito-info">
+                    <h4>{item.name?.length > 15 ? item.name.slice(0, 15) + '…' : item.name}</h4>
+                    <small> {item.code} {item.unit}</small>
+                    <div><strong>${item.total_price.toFixed(2)}</strong></div>
+                  </div>
+                  <div className="controles-cantidad">
+                    <button onClick={() => disminuir(item)}>-</button>
+                    
+				  <input
+					type="number"
+					value={item.quantity}
+					min="1"
+					className="input-cantidad"
+					onChange={(e) => {
+					  const nueva = parseInt(e.target.value)
+					  if (isNaN(nueva) || nueva <= 0) return
+					  actualizarCantidadEnCarrito(item.product_id, nueva)
+					  setCarrito(prev => ({ ...prev, [item.product_id]: nueva }))
+					  cargarCarrito()
+					}}
+				  />
+					
+                    <button onClick={() => aumentar(item)}>+</button>
+                    <button onClick={() => eliminar(item.product_id)} style={{ backgroundColor: '#9f2241', color: 'white' }}>🗑</button>
+                  </div>
                 </div>
-                <div className="controles-cantidad">
-                  <button onClick={() => disminuir(item)}>-</button>
-                  <span>{item.quantity}</span>
-                  <button onClick={() => aumentar(item)}>+</button>
-                  <button onClick={() => eliminar(item.product_id)}  style={{ backgroundColor: '#9f2241', color: 'white' }}>🗑</button>                 
-                </div>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
 
