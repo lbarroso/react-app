@@ -1,25 +1,32 @@
+import { supabase } from '../supabaseClient'
+import {
+  obtenerSesionIndexedDB,
+  guardarSesionIndexedDB,
+  clearSesionIndexedDB
+} from './indexedDBSession'
+
 export function guardarSesionExtendida(session, almcnt) {
-  const unaSemana = 7 * 24 * 60 * 60
-  const ahora = Math.floor(Date.now() / 1000)
-
-  const nuevaSesion = {
-    ...session,
-    expiraEn7Dias: ahora + unaSemana,
-    almcnt: almcnt
+  const expiresAt = session.expires_at || Math.floor(Date.now() / 1000)
+  const record = {
+    userId: session.user.id,
+    email: session.user.email,
+    name: session.user.user_metadata?.name || '',
+    almcnt,
+    expiresAt
   }
-
-  localStorage.setItem('supabaseSession', JSON.stringify(nuevaSesion))
+  guardarSesionIndexedDB(record)
 }
 
-export function obtenerAlmcnt() {
-  const session = localStorage.getItem('supabaseSession')
-  if (!session) return null
+export async function obtenerAlmcnt() {
+  const sesionLocal = await obtenerSesionIndexedDB()
+  if (sesionLocal?.almcnt) return sesionLocal.almcnt
 
-  const parsed = JSON.parse(session)
-  return parsed.almcnt || null
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.user.user_metadata?.almcnt ?? null
 }
 
-export function cerrarSesion() {
-  localStorage.removeItem('supabaseSession')
+export async function cerrarSesion() {
+  await clearSesionIndexedDB()
+  await supabase.auth.signOut()
   window.location.href = '/'
 }

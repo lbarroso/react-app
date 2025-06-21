@@ -1,6 +1,6 @@
 /* src/pages/Dashboard.jsx */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../supabaseClient'
 import { obtenerAlmcnt, cerrarSesion } from '../utils/session'
 import {
@@ -19,11 +19,17 @@ import './Navbar.css';
 
 export default function Dashboard () {
   const [productos, setProductos] = useState([])
-  const [carrito,  setCarrito]   = useState({})
-  const [busqueda, setBusqueda]  = useState('')
+  const [carrito, setCarrito] = useState({})
+  const [busqueda, setBusqueda] = useState('')
   const [scrollVisible, setScrollVisible] = useState(false)
   const [modalAbierto, setModalAbierto] = useState(false)
   const online = useOnlineStatus()
+  const inputRef = useRef(null)
+
+  const limpiarBusqueda = () => {
+    setBusqueda('')
+    inputRef.current?.focus()
+  }
 
   useEffect(() => {
     const onScroll = () => setScrollVisible(window.scrollY > 200)
@@ -32,10 +38,13 @@ export default function Dashboard () {
   }, [])
 
   useEffect(() => {
-    const almcnt = obtenerAlmcnt()
-    if (!almcnt) { cerrarSesion(); return }
-
     const cargarProductos = async () => {
+      const almcnt = await obtenerAlmcnt()
+      if (!almcnt) {
+        cerrarSesion()
+        return
+      }
+
       if (navigator.onLine) {
         const { data, error } = await supabase
           .from('products')
@@ -59,7 +68,7 @@ export default function Dashboard () {
 
   useEffect(() => {
     if (!productos.length) return
-    (async () => {
+    ;(async () => {
       const pares = await Promise.all(
         productos.map(async p => {
           const item = await obtenerItemDelCarrito(p.id)
@@ -81,7 +90,7 @@ export default function Dashboard () {
 
   const aumentarCantidad = async (producto) => {
     const actual = carrito[producto.id] ?? 0
-    const nueva  = actual + 1
+    const nueva = actual + 1
     if (nueva > producto.stock) return
     await actualizarCantidadEnCarrito(producto.id, nueva)
     setCarrito(prev => ({ ...prev, [producto.id]: nueva }))
@@ -89,7 +98,7 @@ export default function Dashboard () {
 
   const disminuirCantidad = async (producto) => {
     const actual = carrito[producto.id] ?? 0
-    const nueva  = actual - 1
+    const nueva = actual - 1
     if (nueva < 0) return
 
     if (nueva === 0) {
@@ -114,41 +123,62 @@ export default function Dashboard () {
 
   return (
     <div className="dashboard-container">
-      <header className="navbar">
-        <div className="navbar-content">
-          <div className="navbar-brand">
-            <img src="/logoTdaBienestar.png" alt="Logo Tienda Bienestar" className="logo-img img-fluid"/>
-            <span className={`status-icon ${online ? 'online' : 'offline'}`}>
-              {online ? '🌐' : '⚠️'}
-            </span>
-            <span className="navbar-subtitle">Sistema de Pedidos PWA</span>
-          </div>
 
-          <div className="nav-btn orders-btn">
-            <button className="nav-button">📋 Pedidos</button>
-            <button
-              className="nav-button"
-              disabled={totalEnCarrito === 0}
-              onClick={() => setModalAbierto(true)}
-            >
-              🛒 Carrito{totalEnCarrito > 0 ? <sup className="cart-badge">{totalEnCarrito}</sup> : ''}
-            </button>
+      <nav className="navbar">
+
+        <div className="navbar-container">
+          
+            <div className="navbar-brand">
+              <h1>📦 Pedidos Offline</h1>
+              <span className="navbar-subtitle">Sistema de Pedidos PWA</span>
+            </div>
+            <div className='navbar-actions'>
             
+                <span className={`connection-indicator}`}>
+                  {online ? '🌐 Conectado a Internet' : '⚠️ Trabajando sin conexión'}
+                </span>
+                
+          
+                <button className="nav-btn orders-btn">📋 Pedidos</button>
+                <button
+                  className="nav-btn cart-btn"
+                  disabled={totalEnCarrito === 0}
+                  onClick={() => setModalAbierto(true)}
+                >
+                  🛒 Carrito{totalEnCarrito > 0 ? <sup className="cart-badge">{totalEnCarrito}</sup> : ''}
+                </button>
+
+            </div>
+
+        </div>
+
+        {/* Buscador al estilo Aurrera */}
+        <div className="search-bar-container">
+          <div className="search-input-wrapper">
+            <span className="search-icon">🔍</span>
+            <input
+              ref={inputRef}
+              type="text"
+              className="search-input"
+              placeholder="Buscar producto por nombre o código"
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+            />
+            {busqueda && (
+              <button
+                className="clear-button"
+                onClick={limpiarBusqueda}
+                aria-label="Limpiar búsqueda"
+              >
+                ❌
+              </button>
+            )}
           </div>
         </div>
-      </header>
+
+      </nav>
 
       <main className="main-content">
-        <div className="buscador-box">
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Buscar producto por nombre o código"
-            value={busqueda}
-            onChange={e => setBusqueda(e.target.value)}
-            className="search-input"
-          />
-        </div>
 
         <h2>Catálogo de Productos</h2>
 
@@ -168,14 +198,6 @@ export default function Dashboard () {
         </div>
       </main>
 
-      {scrollVisible && (
-        <a
-          className="scroll-top-button"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        >
-          ⬆️
-        </a>
-      )}
 
       <CarritoModal
         abierto={modalAbierto}

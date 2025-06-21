@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react';
-import './CarritoModal.css';
+/* src/components/CarritoModal.jsx */
+import { useEffect, useState } from 'react'
+import './CarritoModal.css'
 import {
   obtenerProductosDelCarrito,
   actualizarCantidadEnCarrito,
   eliminarItemDelCarrito,
   obtenerProductosLocal
-} from '../utils/indexedDB';
-import useOnlineStatus from '../utils/useOnlineStatus';
+} from '../utils/indexedDB'
+import useOnlineStatus from '../utils/useOnlineStatus'
 
 export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
-  const [productosCarrito, setProductosCarrito] = useState([]);
-  const online = useOnlineStatus();
+  const [productosCarrito, setProductosCarrito] = useState([])
+  const online = useOnlineStatus()
 
   useEffect(() => {
     if (!abierto) return
@@ -18,10 +19,11 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
   }, [abierto])
 
   const cargarCarrito = async () => {
+    // 1. Leemos todos los registros del carrito y los datos maestros de productos
     const items = await obtenerProductosDelCarrito()
     const productos = await obtenerProductosLocal()
 
-    // combinar carrito_items con info de productos
+    // 2. Los combinamos para enriquecer con nombre, unit, image, code, etc.
     const itemsCompletos = items.map(item => {
       const producto = productos.find(p => p.id === item.product_id) || {}
       return {
@@ -29,15 +31,18 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
         name: producto.name || `ID ${item.product_id}`,
         unit: producto.unit || '',
         image: producto.image || '/imagenes/placeholder.png',
-		code: producto.code
+        code: producto.code || ''
       }
     })
 
+    // 3. Ordenamos ASC por added_at (timestamp de inserción) → primer agregado, primero en la lista
+    itemsCompletos.sort((a, b) => a.added_at - b.added_at)
+
+    // 4. Actualizamos estado
     setProductosCarrito(itemsCompletos)
   }
 
   const aumentar = async (item) => {
-    if (item.quantity >= item.stock) return
     const nueva = item.quantity + 1
     await actualizarCantidadEnCarrito(item.product_id, nueva)
     setCarrito(prev => ({ ...prev, [item.product_id]: nueva }))
@@ -48,9 +53,11 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
     const nueva = item.quantity - 1
     if (nueva < 1) {
       await eliminarItemDelCarrito(item.product_id)
-      const copia = { ...carrito }
-      delete copia[item.product_id]
-      setCarrito(copia)
+      setCarrito(prev => {
+        const copia = { ...prev }
+        delete copia[item.product_id]
+        return copia
+      })
     } else {
       await actualizarCantidadEnCarrito(item.product_id, nueva)
       setCarrito(prev => ({ ...prev, [item.product_id]: nueva }))
@@ -60,9 +67,11 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
 
   const eliminar = async (id) => {
     await eliminarItemDelCarrito(id)
-    const copia = { ...carrito }
-    delete copia[id]
-    setCarrito(copia)
+    setCarrito(prev => {
+      const copia = { ...prev }
+      delete copia[id]
+      return copia
+    })
     cargarCarrito()
   }
 
@@ -74,8 +83,8 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
     setProductosCarrito([])
   }
 
-  const totalCantidad = productosCarrito.reduce((suma, item) => suma + item.quantity, 0)
-  const totalPagar   = productosCarrito.reduce((suma, item) => suma + item.total_price, 0)
+  const totalCantidad = productosCarrito.reduce((sum, i) => sum + i.quantity, 0)
+  const totalPagar   = productosCarrito.reduce((sum, i) => sum + i.total_price, 0)
 
   if (!abierto) return null
 
@@ -94,35 +103,35 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
             productosCarrito.map(item => {
               const imagen = online
                 ? `/imagenes/${item.image || 'imagen.jpg'}`
-                : '/imagenes/imagen.jpg'  // imagen fija offline
-
+                : '/imagenes/imagen.jpg'
               return (
                 <div key={item.product_id} className="carrito-producto">
-                  <img src={imagen} alt="img" />
+                  <img src={imagen} alt={item.name} />
                   <div className="carrito-info">
-                    <h4>{item.name?.length > 15 ? item.name.slice(0, 15) + '…' : item.name}</h4>
-                    <small> {item.code} {item.unit}</small>
+                    <h4>
+                      {item.name.length > 25
+                        ? item.name.slice(0, 25) + '…'
+                        : item.name}
+                    </h4>
+                    <small>{item.code} {item.unit}</small>
                     <div><strong>${item.total_price.toFixed(2)}</strong></div>
                   </div>
                   <div className="controles-cantidad">
                     <button onClick={() => disminuir(item)}>-</button>
-                    
-				  <input
-					type="number"
-					value={item.quantity}
-					min="1"
-					className="input-cantidad"
-					onChange={(e) => {
-					  const nueva = parseInt(e.target.value)
-					  if (isNaN(nueva) || nueva <= 0) return
-					  actualizarCantidadEnCarrito(item.product_id, nueva)
-					  setCarrito(prev => ({ ...prev, [item.product_id]: nueva }))
-					  cargarCarrito()
-					}}
-				  />
-					
+                    <input
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={e => {
+                        const q = Math.max(1, Number(e.target.value))
+                        actualizarCantidadEnCarrito(item.product_id, q)
+                        setCarrito(prev => ({ ...prev, [item.product_id]: q }))
+                        cargarCarrito()
+                      }}
+                      className="input-cantidad"
+                    />
                     <button onClick={() => aumentar(item)}>+</button>
-                    <button onClick={() => eliminar(item.product_id)} style={{ backgroundColor: '#9f2241', color: 'white' }}>🗑</button>
+                    <button onClick={() => eliminar(item.product_id)}>🗑</button>
                   </div>
                 </div>
               )
@@ -136,7 +145,9 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
         </div>
 
         <div className="modal-footer">
-          <button className="btn-vaciar" onClick={vaciar} disabled={!productosCarrito.length}>Vaciar</button>
+          <button className="btn-vaciar" onClick={vaciar} disabled={!productosCarrito.length}>
+            Vaciar
+          </button>
           <button className="btn-checkout">Checkout</button>
           <button className="btn-cerrar" onClick={cerrar}>Cerrar</button>
         </div>

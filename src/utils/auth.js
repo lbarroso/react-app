@@ -1,9 +1,20 @@
-export function isAuthenticated() {
-    const session = localStorage.getItem('supabaseSession')
-    if (!session) return false
-  
-    const parsed = JSON.parse(session)
-    const now = Math.floor(Date.now() / 1000)
-    return parsed.expires_at && parsed.expires_at > now
-  }
-  
+// src/utils/auth.js
+
+import { supabase } from '../supabaseClient'
+
+/**
+ * isAuthenticated
+ * Verifica si hay una sesión activa en Supabase.
+ * Se basa en getSession() del SDK, que ya se encarga
+ * de rehidratar el access_token (usando el refresh token).
+ *
+ * @returns {Promise<boolean>} true si hay sesión, false en caso contrario
+ */
+export async function isAuthenticated() {
+  const {
+    data: { session }
+  } = await supabase.auth.getSession()
+
+  // Si session es null, no hay usuario logueado
+  return !!session
+}

@@ -1,0 +1,48 @@
+/* HEADER */
+.header {
+  background-color: #293845;
+  height: 55px;
+  width: 100%;
+}
+
+/* LOGIN CONTAINER */
+.main-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* background-color: grey; */
+  height: 100vh;
+  width: 100vw;
+}
+
+.body-container {
+  display: flex;
+  height: 100%;
+  /* background-color: red; */
+}
+
+/* IMAGE CONTAINER */
+.image-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  width: 50vw;
+  /* background-color: aqua; */
+}
+
+.image-container img {
+  width: 65%;
+  height: 65%;
+  max-height: 320px;
+}
+
+/* FORM CONTAINER */
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-direction: column;
+  width: 50vw;
+  /* background-color: bisque; */
+}

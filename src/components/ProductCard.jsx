@@ -22,9 +22,10 @@ export default function ProductCard({ producto, cantidad, agregarAlCarrito, aume
         onError={(e) => {
           e.target.src = '/imagenes/imagen.jpg'
         }}
+        style={{ backgroundColor: '#f4f4f4' }} // opcional: efecto de fondo
       />
       </div>
-      <div className="product-name">  {producto.name?.length > 25 ? producto.name.slice(0, 25) + '…' : producto.name} </div>
+      <div className="product-name">  {producto.name?.length > 30 ? producto.name.slice(0, 30) + '…' : producto.name} </div>
       <div className="product-code"> {producto.unit} {producto.code} </div>
       <div className="product-price">${parseFloat(producto.price).toFixed(2)}</div>
       <div className="product-stock">{producto.stock} disponibles</div>

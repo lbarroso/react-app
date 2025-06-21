@@ -1,4 +1,4 @@
-/* src/components/CarritoModal.css */
+/* CarritoModal.css */
 
 .carrito-overlay {
   position: fixed;
@@ -7,20 +7,21 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  z-index: 9999;
 }
 
 .carrito-modal {
   background-color: #fff;
   border-radius: 10px;
-  width: 90%;
+  width: 95%;
   max-width: 700px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-  padding: 20px;
+  padding: 20px 16px 16px;
   position: relative;
   animation: fadeIn 0.2s ease-in-out;
+  box-sizing: border-box;
 }
 
 @keyframes fadeIn {
@@ -33,18 +34,32 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+  position: relative;
 }
 
 .modal-header h2 {
   margin: 0;
   color: #10312B;
+  font-size: 1.2rem;
 }
 
 .modal-header button {
+  position: absolute;
+  top: 0;
+  right: 0;
   background: none;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #999;
   cursor: pointer;
+  padding: 8px;
+  line-height: 1;
+  z-index: 10;
+}
+
+.modal-header button:hover {
+  color: #b91c1c;
 }
 
 .carrito-producto {
@@ -148,4 +163,102 @@
   padding: 4px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+/* ✅ Mejora responsive móvil */
+@media (max-width: 480px) {
+  .carrito-modal {
+    width: 100vw;
+    height: 90vh;
+    border-radius: 0;
+    padding: 16px 12px;
+  }
+
+  .modal-header h2 {
+    font-size: 1rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .modal-footer button {
+    width: 100%;
+  }
+
+  .modal-header button {
+    font-size: 1.3rem;
+  }
+}
+
+/* Contenedor general del footer */
+.cart-actions {
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid #ddd;
+}
+
+/* Contenedor de los dos botones principales */
+.cart-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Botón vaciar */
+.btn-vaciar {
+  background-color: #9f2241;
+  color: #fff;
+  border: none;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.btn-vaciar:hover {
+  background-color: #7d1a34;
+}
+.btn-vaciar:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Botón checkout */
+.btn-checkout {
+  background-color: #10312B;
+  color: #fff;
+  border: none;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.btn-checkout:hover {
+  background-color: #0c251f;
+}
+
+/* Botón cerrar (más pequeño y separado) */
+.cerrar-container {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+.btn-cerrar {
+  background-color: #98989a;
+  color: #10312B;
+  border: 1px solid #10312B;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-cerrar:hover {
+  background-color: #bc955c;
+  color: white;
 }

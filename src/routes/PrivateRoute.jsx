@@ -1,14 +1,41 @@
+// src/routes/PrivateRoute.jsx
+
 import { Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { isAuthenticated } from '../utils/auth'
 
+/**
+ * PrivateRoute
+ * Envuelve rutas que requieren usuario logueado.
+ * Mientras verifica la sesión muestra null (o un loader),
+ * una vez resuelto redirige si no hay sesión viva.
+ */
 export default function PrivateRoute({ children }) {
-  const session = localStorage.getItem('supabaseSession')
-  if (!session) return <Navigate to="/" />
+  const [loading, setLoading] = useState(true)
+  const [allowed, setAllowed] = useState(false)
 
-  const parsed = JSON.parse(session)
-  const ahora = Math.floor(Date.now() / 1000)
+  useEffect(() => {
+    // Consulta al SDK si existe sesión (incluye refresh automático)
+    isAuthenticated()
+      .then(auth => {
+        setAllowed(auth)
+      })
+      .catch(() => {
+        setAllowed(false)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [])
 
-  // Validamos expiración personalizada de 7 días
-  const isValid = parsed.expiraEn7Dias && parsed.expiraEn7Dias > ahora
+  if (loading) {
+    // Aquí podrías retornar un spinner, placeholder, etc.
+    return null
+  }
 
-  return isValid ? children : <Navigate to="/" />
+  // Si no está permitido, redirige al login
+  return allowed
+    ? children
+    : <Navigate to="/" replace />
 }
+
