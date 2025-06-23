@@ -1,5 +1,6 @@
 // components/ProductCard.jsx
 import useOnlineStatus from '../utils/useOnlineStatus';
+import QuantitySelector from './QuantitySelector';
 
 export default function ProductCard({
   producto,
@@ -52,22 +53,14 @@ export default function ProductCard({
         {producto.stock} disponibles
       </div>
 
-      {/* Controles de cantidad */}
-      {cantidad > 0 ? (
-        <div className="cantidad-control">
-          <button onClick={() => disminuirCantidad(producto)}>−</button>
-          <span>{cantidad}</span>
-          <button onClick={() => aumentarCantidad(producto)}>＋</button>
-        </div>
-      ) : (
-        <button
-          className="add-to-cart"
-          onClick={() => agregarAlCarrito(producto)}
-          disabled={producto.stock <= 0}
-        >
-          {producto.stock > 0 ? 'Agregar al carrito' : 'Sin stock'}
-        </button>
-      )}
+      {/* Controles de cantidad con nuevo QuantitySelector */}
+      <QuantitySelector
+        producto={producto}
+        cantidadEnCarrito={cantidad}
+        onAgregarAlCarrito={(prod, totalPiezas) => agregarAlCarrito(prod, totalPiezas)}
+        onAumentarCantidad={aumentarCantidad}
+        onDisminuirCantidad={disminuirCantidad}
+      />
     </div>
   );
 }
