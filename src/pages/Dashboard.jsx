@@ -79,14 +79,17 @@ export default function Dashboard () {
     })()
   }, [productos])
 
-  const agregarAlCarrito = async (producto) => {
-    if (producto.stock <= 0) {
-      alert('Producto sin stock disponible')
-      return
-    }
-    await agregarItemAlCarrito(producto.id, 1, producto.price)
-    setCarrito(prev => ({ ...prev, [producto.id]: 1 }))
-  }
+  const agregarAlCarrito = async (producto, piezas = 1) => {
+    if (producto.stock <= 0) return;
+
+    await agregarItemAlCarrito(producto.id, piezas, producto.price);
+
+    // ① refrescamos el estado local para que el badge y la UI cambien
+    setCarrito(prev => ({
+      ...prev,
+      [producto.id]: (prev[producto.id] || 0) + piezas
+    }));
+  };
 
   const aumentarCantidad = async (producto) => {
     const actual = carrito[producto.id] ?? 0
@@ -130,14 +133,12 @@ export default function Dashboard () {
           
             <div className="navbar-brand">
               <h1>📦 Pedidos Offline</h1>
-              <span className="navbar-subtitle">Sistema de Pedidos PWA</span>
-            </div>
-            <div className='navbar-actions'>
-            
-                <span className={`connection-indicator}`}>
+              <span className="navbar-subtitle">                <span className={`connection-indicator}`}>
                   {online ? '🌐 Conectado a Internet' : '⚠️ Trabajando sin conexión'}
                 </span>
-                
+                </span>
+            </div>
+            <div className='navbar-actions'>
           
                 <button className="nav-btn orders-btn">📋 Pedidos</button>
                 <button
@@ -196,6 +197,7 @@ export default function Dashboard () {
               ))
             : <p>No se encontraron productos.</p>}
         </div>
+
       </main>
 
 
