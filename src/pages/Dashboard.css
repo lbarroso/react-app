@@ -92,7 +92,7 @@
 .add-to-cart-btn {
   width: 100%;
   padding: 0.75rem;
-  background: #007bff;
+  background: #10312B;
   color: white;
   border: none;
   border-radius: 6px;
@@ -102,7 +102,7 @@
 }
 
 .add-to-cart-btn:hover:not(:disabled) {
-  background: #0056b3;
+  background: #235b4e;
 }
 
 .add-to-cart-btn:disabled {
@@ -122,7 +122,7 @@
   height: 40px;
   border: none;
   border-radius: 50%;
-  background: #007bff;
+  background: #ddc9a3;
   color: white;
   cursor: pointer;
   display: flex;
@@ -132,7 +132,7 @@
 }
 
 .quantity-controls button:hover:not(:disabled) {
-  background: #0056b3;
+  background: #10312b;
 }
 
 .quantity-controls button:disabled {

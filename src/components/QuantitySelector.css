@@ -41,7 +41,7 @@
 }
 
 .toggle-btn.active {
-  background-color: #28a745;
+  background-color: #bc955c;
   color: white;
   font-weight: 600;
 }
@@ -138,7 +138,7 @@
   padding: 10px 16px;
   border: none;
   border-radius: 6px;
-  background-color: #28a745;
+  background-color: #235b4e;
   color: white;
   font-size: 14px;
   font-weight: 600;
@@ -159,7 +159,7 @@
 }
 
 .add-to-cart-btn:disabled {
-  background-color: #6c757d;
+  background-color: #ddc9a3;
   cursor: not-allowed;
   opacity: 0.6;
   transform: none;
@@ -217,10 +217,6 @@
     font-size: 12px;
   }
 
-  .add-to-cart-btn {
-    padding: 8px 12px;
-    font-size: 13px;
-  }
 
   .cantidad-control {
     padding: 6px 12px;
