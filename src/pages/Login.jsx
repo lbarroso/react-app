@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useNavigate } from 'react-router-dom'
+import { downloadAndCacheClients } from '../utils/client-operations'
 import './login.css'
 
 export default function Login() {
@@ -39,7 +40,10 @@ export default function Login() {
       data: { almcnt: perfil.almcnt }
     })
 
-    // 4) Redirigimos al dashboard (el SDK ya persistirá la sesión)
+    // 4) Descargar y cachear clientes
+    await downloadAndCacheClients(perfil.almcnt)
+
+    // 6) Redirigimos al dashboard (el SDK ya persistirá la sesión)
     navigate('/dashboard', { replace: true })
   }
 
