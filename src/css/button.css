@@ -1,0 +1,21 @@
+.button {
+  height: 35px;
+  font-size: 14px;
+  width: 150px;
+  background-color: #293845;
+  border: solid;
+  border-color: #293845;
+  color: #fff;
+  border-radius: 3px;
+  cursor: pointer;
+  border-width: 2px;
+}
+
+.button:disabled,
+.button[disabled] {
+  border: 1px solid #cccccc;
+  border-color: #cccccc;
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
+}

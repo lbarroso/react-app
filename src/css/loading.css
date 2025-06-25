@@ -1,0 +1,48 @@
+.loading-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: opacity 0.75s, visibility 0.75s;
+}
+
+.loading-container-absolute {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  background-color: rgba(41, 56, 69, 0.435);
+  transition: opacity 0.75s, visibility 0.75s;
+}
+
+.loading-container--hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+.loading-container-absolute::after,
+.loading-container::after {
+  content: "";
+  width: 75px;
+  height: 75px;
+  border: 15px solid #dddddd;
+  border-top-color: #293845;
+  border-radius: 50%;
+  animation: loading 0.75s ease infinite;
+}
+
+@keyframes loading {
+  from {
+    transform: rotate(0turn);
+  }
+  to {
+    transform: rotate(1turn);
+  }
+}

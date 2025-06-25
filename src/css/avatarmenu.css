@@ -1,0 +1,56 @@
+.avatar-container {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 8px;
+  right: 50px;
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  background-color: #293845;
+  color: white;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 72px;
+  right: 45px;
+  padding-top: 10px;
+  background-color: white;
+  border-radius: 8px;
+  width: 180px;
+  z-index: 2;
+  border: 2px solid #293845;
+}
+
+.dropdown-menu::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  right: 22px;
+  height: 10px;
+  width: 10px;
+  background: white;
+  border: 2px solid #293845;
+  border-right: none;
+  border-bottom: none;
+  transform: rotate(45deg);
+  z-index: 1;
+}
+
+.dropdown-menu.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: 500ms ease;
+}
+
+.dropdown-menu.inactive {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: 500ms ease;
+}
