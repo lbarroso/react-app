@@ -1,0 +1,88 @@
+/**
+ * FASE 4 - ConfigPage Styles
+ * Estilos para página de configuraciones
+ */
+
+.config-page {
+  min-height: 100vh;
+  background-color: var(--gray-50);
+}
+
+.config-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  padding-bottom: var(--space-3xl);
+}
+
+.config-section {
+  width: 100%;
+}
+
+.section-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0 0 var(--space-md) 0;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.form-group label {
+  font-weight: 500;
+  color: var(--gray-700);
+  font-size: var(--font-size-sm);
+}
+
+.form-group label input[type="checkbox"] {
+  margin-right: var(--space-sm);
+}
+
+.form-group small {
+  color: var(--gray-500);
+  font-size: var(--font-size-xs);
+  margin-top: var(--space-xs);
+}
+
+.save-message {
+  background-color: var(--success-color);
+  color: white;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  text-align: center;
+  margin-bottom: var(--space-lg);
+  font-weight: 500;
+}
+
+.danger-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.danger-actions .btn {
+  align-self: flex-start;
+}
+
+.danger-actions small {
+  color: var(--gray-500);
+  font-size: var(--font-size-xs);
+}
+
+/* Responsive */
+@media (min-width: 640px) {
+  .config-sections {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .config-sections {
+    max-width: 768px;
+  }
+} 
