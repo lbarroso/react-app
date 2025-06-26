@@ -1,7 +1,7 @@
 import { openDB } from 'idb'
 
 const DB_NAME = 'PedidosDB'
-const DB_VERSION = 5
+const DB_VERSION = 6  // Migración v6: añadimos nuevos stores
 
 // Store names - Constants for consistency
 export const STORES = {
@@ -60,27 +60,31 @@ export async function getDB() {
         console.log('Created session_store with indices')
       }
 
-      // Store: pedidos (desde v3)
+      // **NUEVOS STORES v6**: pedidos y pedidos_items
       if (!db.objectStoreNames.contains(STORES.PEDIDOS)) {
         const pedidosStore = db.createObjectStore(STORES.PEDIDOS, { 
           keyPath: 'id', 
           autoIncrement: true 
         })
+        // Índices para pedidos
         pedidosStore.createIndex('by-almcnt', 'almcnt', { unique: false })
         pedidosStore.createIndex('by-client', 'ctecve', { unique: false })
         pedidosStore.createIndex('by-date', 'created_at', { unique: false })
         pedidosStore.createIndex('by-status', 'status', { unique: false })
-        console.log('Created pedidos store with indices')
+        pedidosStore.createIndex('by-sync-status', 'sync_status', { unique: false })
+        console.log('✅ Created pedidos store with autoIncrement and indices')
       }
 
-      // Store: pedidos_items (desde v4)
       if (!db.objectStoreNames.contains(STORES.PEDIDOS_ITEMS)) {
         const pedidosItemsStore = db.createObjectStore(STORES.PEDIDOS_ITEMS, {
-          keyPath: ['pedido_id', 'product_id']
+          keyPath: 'id',
+          autoIncrement: true
         })
+        // Índices para pedidos_items
         pedidosItemsStore.createIndex('by-pedido', 'pedido_id', { unique: false })
         pedidosItemsStore.createIndex('by-product', 'product_id', { unique: false })
-        console.log('Created pedidos_items store with indices')
+        pedidosItemsStore.createIndex('by-pedido-product', ['pedido_id', 'product_id'], { unique: true })
+        console.log('✅ Created pedidos_items store with autoIncrement and indices')
       }
 
       // Store: clientes (NUEVO en v5)
@@ -100,7 +104,12 @@ export async function getDB() {
       // Upgrade data migrations if needed
       if (oldVersion < 5) {
         console.log('Running migration to v5...')
-        // Aquí podrían ir migraciones de datos si fueran necesarias
+        // Migración de datos v5: clientes store
+      }
+      
+      if (oldVersion < 6) {
+        console.log('🚀 Running migration to v6: adding pedidos and pedidos_items stores')
+        // Migración de datos v6: pedidos y pedidos_items stores
       }
     },
 

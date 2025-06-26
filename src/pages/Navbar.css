@@ -75,11 +75,11 @@
   transform: none;
 }
 
-.cart-badge {
+.cart-badge,
+.orders-badge {
   position: absolute;
   top: -8px;
   right: -8px;
-  background: #ff4757;
   color: white;
   border-radius: 50%;
   width: 20px;
@@ -89,6 +89,14 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
+}
+
+.cart-badge {
+  background: #ff4757;
+}
+
+.orders-badge {
+  background: #ffa502;
 }
 
 .search-bar-container {

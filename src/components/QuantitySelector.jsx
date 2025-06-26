@@ -1,6 +1,8 @@
 // components/QuantitySelector.jsx
 import { useState, useMemo } from 'react';
+import NumberStepper from './NumberStepper';
 import './QuantitySelector.css';
+import '../css/design-system.css';
 
 /**
  * Componente QuantitySelector - Maneja la selección de cantidad en piezas o unidades
@@ -109,22 +111,26 @@ export default function QuantitySelector({
   if (cantidadEnCarrito > 0) {
     return (
       <div className="cantidad-control">
-        <button 
-          className="qty-btn qty-btn-minus"
-          onClick={() => onDisminuirCantidad(producto)}
-          aria-label="Disminuir cantidad"
-        >
-          −
-        </button>
-        <span className="qty-display">{cantidadEnCarrito}</span>
-        <button 
-          className="qty-btn qty-btn-plus"
-          onClick={() => onAumentarCantidad(producto)}
-          disabled={cantidadEnCarrito >= producto.stock}
-          aria-label="Aumentar cantidad"
-        >
-          ＋
-        </button>
+        <NumberStepper
+          value={cantidadEnCarrito}
+          min={1}
+          max={producto.stock}
+          onChange={(newValue) => {
+            const diff = newValue - cantidadEnCarrito;
+            if (diff > 0) {
+              // Incrementar
+              for (let i = 0; i < diff; i++) {
+                onAumentarCantidad(producto);
+              }
+            } else if (diff < 0) {
+              // Decrementar
+              for (let i = 0; i < Math.abs(diff); i++) {
+                onDisminuirCantidad(producto);
+              }
+            }
+          }}
+          size="small"
+        />
       </div>
     );
   }
@@ -134,28 +140,19 @@ export default function QuantitySelector({
     return (
       <div className="quantity-selector-simple">
         <div className="qty-controls">
-          <button 
-            className="qty-btn qty-btn-minus"
-            onClick={handleDecrement}
-            disabled={count <= 1}
-            aria-label="Disminuir cantidad"
-          >
-            −
-          </button>
-          <span className="qty-display">{count}</span>
-          <button 
-            className="qty-btn qty-btn-plus"
-            onClick={handleIncrement}
-            disabled={count >= producto.stock}
-            aria-label="Aumentar cantidad"
-          >
-            ＋
-          </button>
+          <NumberStepper
+            value={count}
+            min={1}
+            max={producto.stock}
+            onChange={setCount}
+            size="small"
+          />
         </div>
         <button
-          className="add-to-cart-btn"
+          className="btn btn-primary add-to-cart-btn"
           onClick={handleAgregarAlCarrito}
           disabled={producto.stock <= 0}
+          style={{marginTop: 'var(--space-sm)', width: '100%'}}
         >
           {producto.stock > 0 ? 'Agregar al carrito' : 'Sin stock'}
         </button>

@@ -2,6 +2,272 @@ import { getDB, STORES, CLIENTES_STORE } from './getDB'
 
 const PRODUCTOS_STORE = STORES.PRODUCTOS
 const CARRITO_STORE = STORES.CARRITO
+const PEDIDOS_STORE = STORES.PEDIDOS
+const PEDIDOS_ITEMS_STORE = STORES.PEDIDOS_ITEMS
+
+// ===== FUNCIONES DE PEDIDOS =====
+
+/**
+ * Crea un nuevo pedido con cabecera e items en una sola transacción
+ * @param {object} header - Cabecera del pedido
+ * @param {Array} items - Items del pedido
+ * @returns {Promise<number>} ID del pedido creado
+ */
+export async function createPedido(header, items) {
+  if (!header || !Array.isArray(items) || items.length === 0) {
+    throw new Error('Header y items son requeridos')
+  }
+
+  try {
+    const db = await getDB()
+    const tx = db.transaction([PEDIDOS_STORE, PEDIDOS_ITEMS_STORE], 'readwrite')
+    
+    // 1. Insertar cabecera
+    const pedidosStore = tx.objectStore(PEDIDOS_STORE)
+    const pedidoData = {
+      ...header,
+      status: 'pending',
+      sync_status: 'pending',
+      created_at: Date.now(),
+      updated_at: Date.now()
+    }
+    
+    const orderId = await pedidosStore.add(pedidoData)
+    
+    // 2. Insertar items
+    const itemsStore = tx.objectStore(PEDIDOS_ITEMS_STORE)
+    for (const item of items) {
+      const itemData = {
+        pedido_id: orderId,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total_price: item.total_price,
+        product_name: item.product_name || '',
+        product_code: item.product_code || '',
+        created_at: Date.now()
+      }
+      await itemsStore.add(itemData)
+    }
+
+    await tx.done
+    console.log(`✅ Pedido ${orderId} creado con ${items.length} items`)
+    return orderId
+
+  } catch (error) {
+    console.error('Error creando pedido:', error)
+    throw new Error(`Error al crear pedido: ${error.message}`)
+  }
+}
+
+/**
+ * Obtiene pedidos por status
+ * @param {string} status - 'pending' | 'processed'
+ * @returns {Promise<Array>} Lista de pedidos
+ */
+export async function getPedidosByStatus(status) {
+  try {
+    const db = await getDB()
+    const tx = db.transaction(PEDIDOS_STORE, 'readonly')
+    const index = tx.store.index('by-status')
+    const pedidos = await index.getAll(status)
+    await tx.done
+
+    return pedidos.sort((a, b) => b.created_at - a.created_at)
+
+  } catch (error) {
+    console.error(`Error obteniendo pedidos ${status}:`, error)
+    return []
+  }
+}
+
+/**
+ * Actualiza campos de la cabecera del pedido
+ * @param {number} id - ID del pedido
+ * @param {object} patch - Campos a actualizar
+ * @returns {Promise<void>}
+ */
+export async function updatePedidoHeader(id, patch) {
+  if (!id || !patch) {
+    throw new Error('ID y patch son requeridos')
+  }
+
+  try {
+    const db = await getDB()
+    const tx = db.transaction(PEDIDOS_STORE, 'readwrite')
+    const store = tx.objectStore(PEDIDOS_STORE)
+
+    const pedido = await store.get(id)
+    if (!pedido) {
+      throw new Error(`Pedido ${id} no encontrado`)
+    }
+
+    // Actualizar campos
+    Object.assign(pedido, patch)
+    pedido.updated_at = Date.now()
+
+    await store.put(pedido)
+    await tx.done
+
+    console.log(`✅ Pedido ${id} actualizado`)
+
+  } catch (error) {
+    console.error('Error actualizando pedido:', error)
+    throw new Error(`Error al actualizar pedido: ${error.message}`)
+  }
+}
+
+/**
+ * Actualiza un item del pedido y recalcula totales
+ * @param {number} itemId - ID del item
+ * @param {object} patch - Campos a actualizar
+ * @returns {Promise<void>}
+ */
+export async function updatePedidoItem(itemId, patch) {
+  if (!itemId || !patch) {
+    throw new Error('ItemId y patch son requeridos')
+  }
+
+  try {
+    const db = await getDB()
+    const tx = db.transaction([PEDIDOS_ITEMS_STORE, PEDIDOS_STORE], 'readwrite')
+    
+    // 1. Actualizar item
+    const itemsStore = tx.objectStore(PEDIDOS_ITEMS_STORE)
+    const item = await itemsStore.get(itemId)
+    if (!item) {
+      throw new Error(`Item ${itemId} no encontrado`)
+    }
+
+    Object.assign(item, patch)
+    
+    // Recalcular total_price si quantity o unit_price cambiaron
+    if ('quantity' in patch || 'unit_price' in patch) {
+      item.total_price = item.quantity * item.unit_price
+    }
+    
+    await itemsStore.put(item)
+
+    // 2. Recalcular total del pedido
+    const allItems = await itemsStore.index('by-pedido').getAll(item.pedido_id)
+    const newTotal = allItems.reduce((sum, i) => sum + i.total_price, 0)
+
+    // 3. Actualizar header
+    const pedidosStore = tx.objectStore(PEDIDOS_STORE)
+    const pedido = await pedidosStore.get(item.pedido_id)
+    if (pedido) {
+      pedido.total_amount = newTotal
+      pedido.updated_at = Date.now()
+      await pedidosStore.put(pedido)
+    }
+
+    await tx.done
+    console.log(`✅ Item ${itemId} actualizado, nuevo total pedido: ${newTotal}`)
+
+  } catch (error) {
+    console.error('Error actualizando item:', error)
+    throw new Error(`Error al actualizar item: ${error.message}`)
+  }
+}
+
+/**
+ * Limpia carrito por almacén
+ * @param {number} almcnt - Código almacén
+ * @returns {Promise<void>}
+ */
+export async function clearCarritoByAlmcnt(almcnt) {
+  if (!almcnt) {
+    throw new Error('Almcnt requerido')
+  }
+
+  try {
+    const db = await getDB()
+    const tx = db.transaction(CARRITO_STORE, 'readwrite')
+    const store = tx.objectStore(CARRITO_STORE)
+
+    // Por ahora limpia todo el carrito (TODO: filtrar por almcnt)
+    await store.clear()
+    await tx.done
+
+    console.log(`✅ Carrito limpiado para almacén ${almcnt}`)
+
+  } catch (error) {
+    console.error('Error limpiando carrito:', error)
+    throw new Error(`Error al limpiar carrito: ${error.message}`)
+  }
+}
+
+/**
+ * Obtiene pedidos pending con sus items (para sync)
+ * @returns {Promise<Array>} Pedidos con items anidados
+ */
+export async function getPendingPedidosDeep() {
+  try {
+    const db = await getDB()
+    const tx = db.transaction([PEDIDOS_STORE, PEDIDOS_ITEMS_STORE], 'readonly')
+    
+    // 1. Obtener pedidos pending
+    const pedidosIndex = tx.objectStore(PEDIDOS_STORE).index('by-status')
+    const pedidos = await pedidosIndex.getAll('pending')
+    
+    // 2. Obtener items para cada pedido
+    const itemsStore = tx.objectStore(PEDIDOS_ITEMS_STORE)
+    const pedidosConItems = []
+    
+    for (const pedido of pedidos) {
+      const items = await itemsStore.index('by-pedido').getAll(pedido.id)
+      pedidosConItems.push({
+        ...pedido,
+        items
+      })
+    }
+    
+    await tx.done
+    return pedidosConItems.sort((a, b) => b.created_at - a.created_at)
+
+  } catch (error) {
+    console.error('Error obteniendo pedidos deep:', error)
+    return []
+  }
+}
+
+/**
+ * Marca pedido como procesado con ID remoto
+ * @param {number} id - ID local del pedido
+ * @param {number} remoteId - ID remoto de Supabase
+ * @returns {Promise<void>}
+ */
+export async function markPedidoProcessed(id, remoteId) {
+  if (!id) {
+    throw new Error('ID requerido')
+  }
+
+  try {
+    const db = await getDB()
+    const tx = db.transaction(PEDIDOS_STORE, 'readwrite')
+    const store = tx.objectStore(PEDIDOS_STORE)
+
+    const pedido = await store.get(id)
+    if (!pedido) {
+      throw new Error(`Pedido ${id} no encontrado`)
+    }
+
+    pedido.status = 'processed'
+    pedido.sync_status = 'synced'
+    pedido.remote_id = remoteId
+    pedido.synced_at = Date.now()
+    pedido.updated_at = Date.now()
+
+    await store.put(pedido)
+    await tx.done
+
+    console.log(`✅ Pedido ${id} marcado como procesado (remote: ${remoteId})`)
+
+  } catch (error) {
+    console.error('Error marcando pedido procesado:', error)
+    throw new Error(`Error al procesar pedido: ${error.message}`)
+  }
+}
 
 export async function guardarProductos(productos) {
   const db = await getDB()

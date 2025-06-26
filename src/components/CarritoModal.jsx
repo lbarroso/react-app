@@ -1,18 +1,23 @@
 /* src/components/CarritoModal.jsx */
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './CarritoModal.css'
 import {
   obtenerProductosDelCarrito,
   actualizarCantidadEnCarrito,
   eliminarItemDelCarrito,
-  obtenerProductosLocal
+  obtenerProductosLocal,
+  createPedido,
+  clearCarritoByAlmcnt
 } from '../utils/indexedDB'
 import useOnlineStatus from '../utils/useOnlineStatus'
 import CheckoutModal from './CheckoutModal'
 import { useClientesLocal } from '../hooks/useClientesLocal'
 import { obtenerAlmcnt } from '../utils/session'
+import NumberStepper from './NumberStepper'
 
 export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
+  const navigate = useNavigate()
   const [productosCarrito, setProductosCarrito] = useState([])
   const [modalState, setModalState] = useState('CARRITO') // 'CARRITO' | 'CLIENT_SELECTION'
   const [almcnt, setAlmcnt] = useState(null)
@@ -132,16 +137,65 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
 
   // Función para manejar la creación del pedido
   const handleCreateOrder = async (orderData) => {
-    console.log('📦 Datos del pedido a crear:', orderData)
+    console.log('📦 Creando pedido real:', orderData)
     
-    // TODO: Aquí implementarás la lógica para crear el pedido
-    // Por ahora solo mostramos los datos en consola
-    alert(`Pedido creado para cliente: ${orderData.client.name}\nTotal: $${orderData.totals.total.toFixed(2)}`)
-    
-    // Cerrar modal y limpiar carrito
-    setModalState('CARRITO')
-    cerrar()
-    vaciar()
+    try {
+      // Calcular totales
+      const totalAmount = orderData.items.reduce((sum, item) => sum + item.total_price, 0)
+      
+      // TODO: Obtener user_id desde la sesión
+      const userId = 'user_temp' // PLACEHOLDER
+      
+      // Preparar header del pedido
+      const header = {
+        almcnt: orderData.almcnt,
+        ctecve: orderData.cliente.ctecve,
+        ctename: orderData.cliente.name,
+        user_id: userId,
+        total_amount: totalAmount,
+        notes: ''
+      }
+      
+      // Preparar items
+      const items = orderData.items.map(item => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total_price: item.total_price,
+        product_name: item.name || '',
+        product_code: item.code || ''
+      }))
+      
+      console.log('📝 Guardando en IndexedDB...')
+      console.log('📝 Header:', header)
+      console.log('📝 Items:', items)
+      
+      // FASE 3: Crear pedido real
+      const orderId = await createPedido(header, items)
+      console.log(`✅ Pedido creado con ID: ${orderId}`)
+      
+      // Limpiar carrito del almacén
+      await clearCarritoByAlmcnt(almcnt)
+      console.log('✅ Carrito limpiado')
+      
+      // Mostrar confirmación
+      alert(`✅ Pedido #${orderId} creado exitosamente!\n\nCliente: ${orderData.cliente.name}\nTotal: $${totalAmount.toFixed(2)}\n\nRedirigiendo a gestión de pedidos...`)
+      
+      // Cerrar modal y navegar a pedidos
+      setModalState('CARRITO')
+      cerrar()
+      
+      // Limpiar estado del carrito
+      setCarrito({})
+      setProductosCarrito([])
+      
+      // Navegar a la página de pedidos
+      navigate('/pedidos')
+      
+    } catch (error) {
+      console.error('❌ Error creando pedido:', error)
+      alert(`❌ Error al crear pedido: ${error.message}`)
+    }
   }
 
   const totalCantidad = productosCarrito.reduce((sum, i) => sum + i.quantity, 0)
@@ -212,21 +266,24 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
                     <div><strong>${item.total_price.toFixed(2)}</strong></div>
                   </div>
                   <div className="controles-cantidad">
-                    <button onClick={() => disminuir(item)}>-</button>
-                    <input
-                      type="number"
-                      min="1"
+                    <NumberStepper
                       value={item.quantity}
-                      onChange={e => {
-                        const q = Math.max(1, Number(e.target.value))
-                        actualizarCantidadEnCarrito(item.product_id, q)
-                        setCarrito(prev => ({ ...prev, [item.product_id]: q }))
+                      min={1}
+                      max={9999}
+                      onChange={(newQuantity) => {
+                        actualizarCantidadEnCarrito(item.product_id, newQuantity)
+                        setCarrito(prev => ({ ...prev, [item.product_id]: newQuantity }))
                         cargarCarrito()
                       }}
-                      className="input-cantidad"
+                      size="small"
                     />
-                    <button onClick={() => aumentar(item)}>+</button>
-                    <button onClick={() => eliminar(item.product_id)}>🗑</button>
+                    <button 
+                      onClick={() => eliminar(item.product_id)}
+                      className="btn btn-icon-sm"
+                      style={{backgroundColor: 'var(--error-color)', color: 'white', marginLeft: 'var(--space-sm)'}}
+                    >
+                      🗑
+                    </button>
                   </div>
                 </div>
               )

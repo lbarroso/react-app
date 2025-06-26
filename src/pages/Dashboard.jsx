@@ -1,6 +1,7 @@
 /* src/pages/Dashboard.jsx */
 
 import { useEffect, useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { obtenerAlmcnt, cerrarSesion } from '../utils/session'
 import {
@@ -18,6 +19,7 @@ import './Dashboard.css';
 import './Navbar.css';
 
 export default function Dashboard () {
+  const navigate = useNavigate()
   const [productos, setProductos] = useState([])
   const [carrito, setCarrito] = useState({})
   const [busqueda, setBusqueda] = useState('')
@@ -123,6 +125,10 @@ export default function Dashboard () {
   )
 
   const totalEnCarrito = Object.values(carrito).reduce((suma, cant) => suma + cant, 0)
+  
+  // Obtener contador de pedidos pending desde window.syncState
+  const syncStats = window.syncState?.syncStats || {}
+  const pendingOrdersCount = syncStats.pendingCount || 0
 
   return (
     <div className="dashboard-container">
@@ -140,7 +146,21 @@ export default function Dashboard () {
             </div>
             <div className='navbar-actions'>
           
-                <button className="nav-btn orders-btn">📋 Pedidos</button>
+                <button 
+                  className="nav-btn orders-btn"
+                  onClick={() => navigate('/pedidos')}
+                >
+                  📋 Pedidos
+                  {pendingOrdersCount > 0 && (
+                    <sup className="orders-badge">{pendingOrdersCount}</sup>
+                  )}
+                </button>
+                <button
+                  className="nav-btn"
+                  onClick={() => navigate('/config')}
+                >
+                  ⚙️ Config
+                </button>
                 <button
                   className="nav-btn cart-btn"
                   disabled={totalEnCarrito === 0}
