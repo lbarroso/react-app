@@ -9,9 +9,11 @@ import {
   getPedidosByStatus, 
   updatePedidoHeader, 
   updatePedidoItem,
-  getPendingPedidosDeep 
+  getPendingPedidosDeep,
+  getPedidoWithItems 
 } from '../utils/indexedDB'
 import { searchClientsByName } from '../utils/indexedDB'
+import { shareViaWhatsApp, copyPedidoToClipboard } from '../utils/whatsappShare'
 import NumberStepper from '../components/NumberStepper'
 import './OrderDetail.css'
 import '../css/design-system.css'
@@ -44,21 +46,8 @@ export default function OrderDetail() {
     try {
       console.log(`📋 Cargando pedido ${id}...`)
       
-      // Buscar en pedidos pending con items
-      const pendingPedidos = await getPendingPedidosDeep()
-      let foundPedido = pendingPedidos.find(p => p.id === parseInt(id))
-      
-      // Si no está en pending, buscar en processed
-      if (!foundPedido) {
-        const processedPedidos = await getPedidosByStatus('processed')
-        foundPedido = processedPedidos.find(p => p.id === parseInt(id))
-        
-        if (foundPedido) {
-          // Cargar items por separado para processed
-          // TODO: Implementar función para obtener items de pedido processed
-          foundPedido.items = []
-        }
-      }
+      // Usar la nueva función que funciona para cualquier status
+      const foundPedido = await getPedidoWithItems(parseInt(id))
       
       if (!foundPedido) {
         throw new Error(`Pedido ${id} no encontrado`)
@@ -73,6 +62,7 @@ export default function OrderDetail() {
       })
       
       console.log(`✅ Pedido ${id} cargado:`, foundPedido)
+      console.log(`📦 Items cargados: ${foundPedido.items?.length || 0}`)
       
     } catch (err) {
       console.error('Error cargando pedido:', err)
@@ -170,6 +160,25 @@ export default function OrderDetail() {
     }))
     setClienteSearch(cliente.name)
     setClientes([])
+  }
+
+  /**
+   * Maneja compartir por WhatsApp
+   */
+  const handleWhatsAppShare = () => {
+    shareViaWhatsApp(pedido, items)
+  }
+
+  /**
+   * Maneja copiar al portapapeles
+   */
+  const handleCopyToClipboard = async () => {
+    const success = await copyPedidoToClipboard(pedido, items)
+    if (success) {
+      alert('✅ Información del pedido copiada al portapapeles')
+    } else {
+      alert('❌ Error al copiar la información')
+    }
   }
 
   /**
@@ -299,6 +308,23 @@ export default function OrderDetail() {
             </div>
             
             <div className="nav-actions">
+              {/* Botones de compartir */}
+              <button 
+                className="btn btn-ghost whatsapp-share-btn" 
+                onClick={handleWhatsAppShare}
+                title="Compartir por WhatsApp"
+              >
+                📱 WhatsApp
+              </button>
+              
+              <button 
+                className="btn btn-ghost copy-share-btn" 
+                onClick={handleCopyToClipboard}
+                title="Copiar información"
+              >
+                📋 Copiar
+              </button>
+              
               {pedido.status === 'pending' && !isEditing && (
                 <button className="btn btn-primary" onClick={handleStartEdit}>
                   ✏️ Editar
@@ -345,7 +371,7 @@ export default function OrderDetail() {
             <div>
               <OrderItemsTable 
                 items={items}
-                isEditable={pedido.status === 'pending'}
+                isEditable={pedido.status === 'pending' || pedido.status === 'processed'}
                 onUpdateItem={handleUpdateItem}
                 onDeleteItem={handleDeleteItem}
               />

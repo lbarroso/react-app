@@ -18,7 +18,7 @@ export async function downloadAndCacheClients(almcnt) {
     
     const { data: clientes, error } = await supabase
       .from('customers')
-      .select('almcnt, ctecve, name')
+      .select('id, almcnt, ctecve, name')
       .eq('almcnt', almcnt)
       .order('name', { ascending: true })
     

@@ -140,8 +140,8 @@ export function useClientesLocal(almcnt, options = {}) {
       return
     }
 
-    // Validar estructura del cliente
-    if (!client.almcnt || !client.ctecve || !client.name) {
+    // Validar estructura del cliente (incluyendo el nuevo campo id)
+    if (!client.id || !client.almcnt || !client.ctecve || !client.name) {
       console.warn('Cliente con estructura inválida:', client)
       return
     }

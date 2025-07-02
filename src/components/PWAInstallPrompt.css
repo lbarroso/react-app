@@ -1,0 +1,462 @@
+/* 🎨 PWA Install Prompt - Estilos Premium */
+
+/* Overlay y backdrop */
+.pwa-install-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeInOverlay 0.4s ease-out;
+}
+
+.pwa-install-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Card principal con glassmorphism */
+.pwa-install-card {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 10px 20px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  padding: 2rem;
+  animation: slideInCard 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+}
+
+.pwa-install-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.8) 50%, 
+    transparent 100%);
+}
+
+/* Header con icono animado */
+.pwa-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.pwa-icon-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.pwa-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  position: relative;
+  box-shadow: 
+    0 10px 20px rgba(102, 126, 234, 0.3),
+    0 5px 10px rgba(118, 75, 162, 0.2);
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+.pwa-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Sparkles animados */
+.pwa-sparkles {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.sparkle {
+  position: absolute;
+  font-size: 16px;
+  animation: sparkleFloat 3s ease-in-out infinite;
+}
+
+.sparkle-1 {
+  top: -20px;
+  left: -30px;
+  animation-delay: 0s;
+}
+
+.sparkle-2 {
+  top: -30px;
+  right: -25px;
+  animation-delay: 1s;
+}
+
+.sparkle-3 {
+  bottom: -25px;
+  left: -20px;
+  animation-delay: 2s;
+}
+
+/* Títulos */
+.pwa-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pwa-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Beneficios con animación escalonada */
+.pwa-benefits {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.3s ease;
+  animation: slideInBenefit 0.6s ease-out forwards;
+  animation-delay: calc(var(--index) * 0.1s);
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.benefit-item:nth-child(1) { --index: 1; }
+.benefit-item:nth-child(2) { --index: 2; }
+.benefit-item:nth-child(3) { --index: 3; }
+.benefit-item:nth-child(4) { --index: 4; }
+
+.benefit-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.benefit-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* Call to action */
+.pwa-cta {
+  margin-bottom: 1rem;
+}
+
+.btn-install {
+  width: 100%;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 10px 20px rgba(102, 126, 234, 0.3),
+    0 5px 10px rgba(118, 75, 162, 0.2);
+  margin-bottom: 1rem;
+}
+
+.btn-install::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.2) 50%, 
+    transparent 100%);
+  transition: left 0.6s ease;
+}
+
+.btn-install:hover::before {
+  left: 100%;
+}
+
+.btn-install:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 15px 30px rgba(102, 126, 234, 0.4),
+    0 8px 16px rgba(118, 75, 162, 0.3);
+}
+
+.btn-install:active {
+  transform: translateY(0);
+}
+
+.btn-install:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Spinner de instalación */
+.install-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Acciones secundarias */
+.pwa-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn-later,
+.btn-dismiss {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-later:hover,
+.btn-dismiss:hover {
+  color: #374151;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Badge de confianza */
+.trust-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.badge-icon {
+  font-size: 1rem;
+}
+
+/* Animaciones */
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInCard {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slideInBenefit {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes sparkleFloat {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.7;
+  }
+  33% {
+    transform: translate(10px, -10px) rotate(120deg);
+    opacity: 1;
+  }
+  66% {
+    transform: translate(-5px, -15px) rotate(240deg);
+    opacity: 0.8;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .pwa-install-card {
+    margin: 1rem;
+    padding: 1.5rem;
+    border-radius: 20px;
+  }
+  
+  .pwa-title {
+    font-size: 1.5rem;
+  }
+  
+  .pwa-benefits {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .btn-install {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .pwa-install-card {
+    background: rgba(31, 41, 55, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+  
+  .pwa-subtitle {
+    color: #9ca3af;
+  }
+  
+  .benefit-item {
+    background: rgba(55, 65, 81, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e5e7eb;
+  }
+  
+  .benefit-item:hover {
+    background: rgba(55, 65, 81, 0.8);
+  }
+  
+  .btn-later,
+  .btn-dismiss {
+    color: #9ca3af;
+  }
+  
+  .btn-later:hover,
+  .btn-dismiss:hover {
+    color: #e5e7eb;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .trust-badge {
+    color: #9ca3af;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Efectos especiales para impresionar */
+.pwa-install-card {
+  position: relative;
+}
+
+.pwa-install-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(102, 126, 234, 0.1) 60deg,
+    transparent 120deg,
+    rgba(118, 75, 162, 0.1) 180deg,
+    transparent 240deg,
+    rgba(102, 126, 234, 0.1) 300deg,
+    transparent 360deg
+  );
+  animation: rotate 10s linear infinite;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0.7;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+} 

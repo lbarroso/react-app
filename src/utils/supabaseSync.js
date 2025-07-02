@@ -4,6 +4,12 @@
  */
 
 import { supabase } from '../supabaseClient'
+import { 
+  mapPedidoToSupabase, 
+  mapItemsToSupabase, 
+  validatePedidoForSync,
+  debugFieldMapping 
+} from './supabaseFieldMapping'
 
 /**
  * Push pedido header a Supabase
@@ -16,21 +22,20 @@ export async function pushOrder(header) {
   }
 
   try {
+    // Obtener usuario autenticado
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      throw new Error('Usuario no autenticado')
+    }
+
     console.log('📤 Pushing order header:', header)
     
-    // Preparar datos para Supabase (remover campos locales)
-    const { id, status, sync_status, created_at, updated_at, synced_at, remote_id, ...orderData } = header
-    
-    // Agregar timestamp de creación si no existe
-    const supabaseOrder = {
-      ...orderData,
-      created_at: new Date(header.created_at).toISOString(),
-      status: 'pending' // Always pending en Supabase inicialmente
-    }
+    // Mapear datos usando la función de mapeo
+    const supabaseOrder = mapPedidoToSupabase(header, user.id)
     
     console.log('📤 Supabase order data:', supabaseOrder)
     
-    // TODO: Verificar estructura de tabla 'orders' en Supabase
+    // Insertar en Supabase
     const { data, error } = await supabase
       .from('orders')
       .insert([supabaseOrder])
@@ -39,6 +44,7 @@ export async function pushOrder(header) {
 
     if (error) {
       console.error('❌ Error pushing order:', error)
+      console.error('❌ Error details:', error.details, error.hint, error.code)
       throw new Error(`Supabase error: ${error.message}`)
     }
 
@@ -69,19 +75,12 @@ export async function pushOrderItems(remoteOrderId, items) {
   try {
     console.log(`📤 Pushing ${items.length} items para order ${remoteOrderId}`)
     
-    // Preparar items para Supabase (remover campos locales)
-    const supabaseItems = items.map(item => {
-      const { id, pedido_id, created_at, ...itemData } = item
-      return {
-        ...itemData,
-        order_id: remoteOrderId, // Usar remote ID
-        created_at: new Date(item.created_at).toISOString()
-      }
-    })
+    // Mapear items usando la función de mapeo
+    const supabaseItems = mapItemsToSupabase(items, remoteOrderId)
     
     console.log('📤 Supabase items data:', supabaseItems)
     
-    // TODO: Verificar estructura de tabla 'order_items' en Supabase
+    // Insertar en Supabase
     const { data, error } = await supabase
       .from('order_items')
       .insert(supabaseItems)
@@ -89,6 +88,7 @@ export async function pushOrderItems(remoteOrderId, items) {
 
     if (error) {
       console.error('❌ Error pushing order items:', error)
+      console.error('❌ Error details:', error.details, error.hint, error.code)
       throw new Error(`Supabase error: ${error.message}`)
     }
 
@@ -106,10 +106,10 @@ export async function pushOrderItems(remoteOrderId, items) {
  */
 export async function checkSupabaseConnection() {
   try {
-    // Test simple de conectividad
+    // Test simple de conectividad - corregir sintaxis
     const { data, error } = await supabase
       .from('orders')
-      .select('count(*)')
+      .select('id')
       .limit(1)
 
     if (error) {
@@ -138,6 +138,19 @@ export async function syncPedidoComplete(pedido) {
 
   try {
     console.log(`📦 Syncing pedido completo ${pedido.id}...`)
+    
+    // Validar datos antes de sincronizar
+    const validation = validatePedidoForSync(pedido)
+    if (!validation.isValid) {
+      console.error('❌ Pedido inválido para sync:', validation.errors)
+      throw new Error(`Pedido inválido: ${validation.errors.join(', ')}`)
+    }
+
+    // Debug: mostrar mapeo de campos
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      debugFieldMapping(pedido, user.id)
+    }
     
     // 1. Push header
     const remoteId = await pushOrder(pedido)

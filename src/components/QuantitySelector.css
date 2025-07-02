@@ -41,7 +41,7 @@
 }
 
 .toggle-btn.active {
-  background-color: #28a745;
+  background-color: #691c32;
   color: white;
   font-weight: 600;
 }
@@ -62,10 +62,10 @@
 .qty-btn {
   width: 36px;
   height: 36px;
-  border: 2px solid #28a745;
+  border: 2px solid #691c32;
   border-radius: 50%;
   background-color: white;
-  color: #28a745;
+  color: #691c32;
   font-size: 18px;
   font-weight: bold;
   cursor: pointer;
@@ -77,7 +77,7 @@
 }
 
 .qty-btn:hover:not(:disabled) {
-  background-color: #28a745;
+  background-color: #691c32;
   color: white;
   transform: scale(1.05);
 }
@@ -138,7 +138,7 @@
   padding: 10px 16px;
   border: none;
   border-radius: 6px;
-  background-color: #28a745;
+  background-color: #691c32;
   color: white;
   font-size: 14px;
   font-weight: 600;
@@ -149,7 +149,7 @@
 }
 
 .add-to-cart-btn:hover:not(:disabled) {
-  background-color: #218838;
+  background-color: #235b4e;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
 }
@@ -159,7 +159,7 @@
 }
 
 .add-to-cart-btn:disabled {
-  background-color: #6c757d;
+  background-color: #691c32;
   cursor: not-allowed;
   opacity: 0.6;
   transform: none;
@@ -190,16 +190,19 @@
   .toggle-btn {
     padding: 6px 8px;
     font-size: 13px;
+    
   }
 
   .qty-btn {
     width: 32px;
     height: 32px;
     font-size: 16px;
+    
   }
 
   .qty-btn-minus {
     font-size: 18px;
+    
   }
 
   .qty-btn-plus {
@@ -210,6 +213,7 @@
     min-width: 35px;
     font-size: 16px;
     padding: 6px;
+    
   }
 
   .conversion-info {
@@ -236,17 +240,17 @@
 }
 
 .add-to-cart-btn:focus:not(:disabled) {
-  outline: 2px solid #28a745;
+  outline: 2px solid #691c32;
   outline-offset: 2px;
 }
 
 .qty-btn:focus:not(:disabled) {
-  outline: 2px solid #28a745;
+  outline: 2px solid #691c32;
   outline-offset: 2px;
 }
 
 .toggle-btn:focus {
-  outline: 2px solid #28a745;
+  outline: 2px solid #691c32;
   outline-offset: -2px;
 }
 
@@ -284,6 +288,7 @@
 
   .toggle-btn {
     color: #e2e8f0;
+    background-color: #bc955c;
   }
 
   .toggle-btn:hover {
@@ -307,7 +312,7 @@
   }
 
   .cantidad-control {
-    background-color: #4a5568;
+    background-color: #238e9a;
     border-color: #718096;
   }
 }

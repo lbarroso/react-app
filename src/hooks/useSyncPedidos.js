@@ -11,11 +11,15 @@ import {
   retryWithBackoff,
   isNetworkError 
 } from '../utils/supabaseSync'
+import { supabase } from '../supabaseClient'
 
 // Configuración del hook
 const SYNC_INTERVAL = 60000 // 60 segundos
 const MAX_SYNC_RETRIES = 3
 const SYNC_RETRY_DELAY = 2000 // 2 segundos
+
+// 🚀 PRODUCCIÓN: SINCRONIZACIÓN HABILITADA
+const DISABLE_SYNC_FOR_TESTING = false // 🚀 SYNC ACTIVO - ¡Funcionando en producción!
 
 /**
  * Hook para sincronización automática de pedidos
@@ -25,6 +29,7 @@ export function useSyncPedidos() {
   // Estados del hook
   const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [isSyncing, setIsSyncing] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [syncStats, setSyncStats] = useState({
     lastSync: null,
     totalSynced: 0,
@@ -37,9 +42,44 @@ export function useSyncPedidos() {
   const retryTimeoutRef = useRef(null)
 
   /**
-   * Actualiza contador de pedidos pending
+   * Verifica si el usuario está autenticado
+   */
+  const checkAuthStatus = useCallback(async () => {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        console.warn('⚠️ Error verificando auth:', error.message)
+        setIsAuthenticated(false)
+        return false
+      }
+      
+      const authenticated = !!user
+      setIsAuthenticated(authenticated)
+      
+      if (authenticated) {
+        console.log('✅ Usuario autenticado, sync habilitado')
+      } else {
+        console.log('🔒 Usuario no autenticado, sync deshabilitado')
+      }
+      
+      return authenticated
+    } catch (error) {
+      console.warn('⚠️ Error en checkAuthStatus:', error)
+      setIsAuthenticated(false)
+      return false
+    }
+  }, [])
+
+  /**
+   * Actualiza contador de pedidos pending (solo si está autenticado)
    */
   const updatePendingCount = useCallback(async () => {
+    if (!isAuthenticated) {
+      setSyncStats(prev => ({ ...prev, pendingCount: 0 }))
+      return
+    }
+
     try {
       const pending = await getPendingPedidosDeep()
       setSyncStats(prev => ({
@@ -48,8 +88,9 @@ export function useSyncPedidos() {
       }))
     } catch (error) {
       console.error('Error actualizando pending count:', error)
+      // No lanzar error, solo registrar
     }
-  }, [])
+  }, [isAuthenticated])
 
   /**
    * Maneja cambios de conectividad
@@ -60,19 +101,37 @@ export function useSyncPedidos() {
     
     console.log(`📶 Status conectividad: ${online ? 'ONLINE' : 'OFFLINE'}`)
     
-    if (online) {
+    if (online && isAuthenticated) {
       // Al volver online, intentar sync inmediatamente
       console.log('🔄 Volviendo online - iniciando sync...')
       setTimeout(() => {
         performSync()
       }, 1000) // Pequeño delay para estabilizar conexión
     }
-  }, [])
+  }, [isAuthenticated])
 
   /**
    * Realiza sincronización de pedidos pending
    */
   const performSync = useCallback(async () => {
+    // 🚀 VERIFICACIÓN: Estado del sync
+    if (DISABLE_SYNC_FOR_TESTING) {
+      console.log('🚫 SYNC DESHABILITADO - DISABLE_SYNC_FOR_TESTING = true')
+      return { success: false, reason: 'Sync deshabilitado para testing' }
+    } else {
+      console.log('🚀 SYNC HABILITADO - DISABLE_SYNC_FOR_TESTING = false')
+    }
+
+    // Verificaciones previas
+    if (!isAuthenticated) {
+      console.log('🔒 No autenticado - saltando sync')
+      console.log('🔐 DEBUG: Estado autenticación detallado:', {
+        isAuthenticated,
+        user: supabase.auth.getUser ? 'método disponible' : 'método no disponible'
+      })
+      return { success: false, reason: 'No autenticado' }
+    }
+
     if (isSyncing) {
       console.log('⏳ Sync ya en progreso, saltando...')
       return { success: false, reason: 'Sync en progreso' }
@@ -154,7 +213,7 @@ export function useSyncPedidos() {
         console.log(`🎉 Sync completado: ${syncedCount}/${pendingPedidos.length} pedidos en ${duration}ms`)
         
         // TODO: Mostrar toast success
-        if (window.showToast) {
+        if (typeof window !== 'undefined' && window.showToast) {
           window.showToast(`✅ ${syncedCount} pedidos sincronizados`, 'success')
         }
       }
@@ -163,7 +222,7 @@ export function useSyncPedidos() {
         console.warn(`⚠️ ${errors.length} errores durante sync`)
         
         // TODO: Mostrar toast error
-        if (window.showToast) {
+        if (typeof window !== 'undefined' && window.showToast) {
           window.showToast(`⚠️ ${errors.length} errores en sync`, 'warning')
         }
       }
@@ -188,7 +247,7 @@ export function useSyncPedidos() {
       }))
 
       // TODO: Mostrar toast error
-      if (window.showToast) {
+      if (typeof window !== 'undefined' && window.showToast) {
         window.showToast(`❌ Error en sync: ${error.message}`, 'error')
       }
 
@@ -197,15 +256,20 @@ export function useSyncPedidos() {
     } finally {
       setIsSyncing(false)
     }
-  }, [isOnline, isSyncing])
+  }, [isOnline, isSyncing, isAuthenticated])
 
   /**
    * Sync manual (para botón "Sincronizar ya")
    */
   const manualSync = useCallback(async () => {
+    if (!isAuthenticated) {
+      console.log('🔒 Sync manual rechazado - no autenticado')
+      return { success: false, reason: 'No autenticado' }
+    }
+    
     console.log('🚀 Sync manual iniciado')
     return await performSync()
-  }, [performSync])
+  }, [performSync, isAuthenticated])
 
   /**
    * Programa próximo sync automático
@@ -215,15 +279,62 @@ export function useSyncPedidos() {
       clearInterval(syncIntervalRef.current)
     }
 
+    if (!isAuthenticated) {
+      console.log('🔒 Sync automático deshabilitado - no autenticado')
+      return
+    }
+
     syncIntervalRef.current = setInterval(() => {
-      if (isOnline && !isSyncing) {
+      if (isOnline && !isSyncing && isAuthenticated) {
         console.log('⏰ Sync automático programado ejecutándose...')
         performSync()
       }
     }, SYNC_INTERVAL)
 
     console.log(`⏰ Próximo sync automático en ${SYNC_INTERVAL / 1000}s`)
-  }, [isOnline, isSyncing, performSync])
+  }, [isOnline, isSyncing, performSync, isAuthenticated])
+
+  /**
+   * Effect para monitorear cambios de autenticación
+   */
+  useEffect(() => {
+    console.log('🔧 Configurando listener de auth...')
+    
+    // Verificar estado inicial
+    checkAuthStatus()
+    
+    // Listener para cambios de auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log(`🔐 Auth event: ${event}`, session?.user?.id || 'no user')
+        
+        const authenticated = !!session?.user
+        setIsAuthenticated(authenticated)
+        
+        if (authenticated && event === 'SIGNED_IN') {
+          console.log('✅ Usuario autenticado - habilitando sync')
+          // Dar tiempo para que se estabilice la sesión
+          setTimeout(() => {
+            updatePendingCount()
+            if (isOnline) {
+              performSync()
+            }
+          }, 2000)
+        } else if (event === 'SIGNED_OUT') {
+          console.log('🚪 Usuario desconectado - deshabilitando sync')
+          setSyncStats(prev => ({
+            ...prev,
+            pendingCount: 0,
+            errors: []
+          }))
+        }
+      }
+    )
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, []) // Solo ejecutar una vez
 
   /**
    * Effect principal del hook
@@ -234,19 +345,6 @@ export function useSyncPedidos() {
     // 1. Listeners de conectividad
     window.addEventListener('online', handleOnlineStatusChange)
     window.addEventListener('offline', handleOnlineStatusChange)
-
-    // 2. Actualizar pending count inicial
-    updatePendingCount()
-
-    // 3. Programar sync automático
-    scheduleNextSync()
-
-    // 4. Sync inicial si está online
-    if (isOnline) {
-      setTimeout(() => {
-        performSync()
-      }, 2000) // Delay inicial para estabilizar app
-    }
 
     // Cleanup
     return () => {
@@ -260,40 +358,47 @@ export function useSyncPedidos() {
         clearTimeout(retryTimeoutRef.current)
       }
     }
-  }, []) // Solo ejecutar una vez
+  }, [handleOnlineStatusChange])
 
   /**
-   * Effect para re-programar sync cuando cambie conectividad
+   * Effect para re-programar sync cuando cambie autenticación o conectividad
    */
   useEffect(() => {
     scheduleNextSync()
   }, [scheduleNextSync])
 
   /**
-   * Effect para actualizar pending count periódicamente
+   * Effect para actualizar pending count periódicamente (solo si autenticado)
    */
   useEffect(() => {
+    if (!isAuthenticated) return
+
     const updateInterval = setInterval(updatePendingCount, 10000) // Cada 10s
     return () => clearInterval(updateInterval)
-  }, [updatePendingCount])
+  }, [updatePendingCount, isAuthenticated])
 
   // Retornar estado y funciones públicas
   return {
     // Estados
     isOnline,
     isSyncing,
+    isAuthenticated,
     syncStats,
     
     // Funciones
     manualSync,
     updatePendingCount,
+    checkAuthStatus,
     
     // Estados derivados
     hasPendingOrders: syncStats.pendingCount > 0,
     hasErrors: syncStats.errors.length > 0,
     lastSyncAgo: syncStats.lastSync 
       ? Math.floor((Date.now() - syncStats.lastSync) / 1000)
-      : null
+      : null,
+    
+    // Estado de disponibilidad
+    canSync: isAuthenticated && isOnline && !isSyncing
   }
 }
 

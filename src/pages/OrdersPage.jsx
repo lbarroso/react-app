@@ -5,9 +5,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getPedidosByStatus } from '../utils/indexedDB'
-import './OrdersPage.css'
-import '../css/design-system.css'
+import { getPedidosByStatus, getPedidoWithItems } from '../utils/indexedDB'
+import { shareViaWhatsApp, copyPedidoToClipboard } from '../utils/whatsappShare'
+
 
 export default function OrdersPage() {
   const navigate = useNavigate()
@@ -106,103 +106,115 @@ export default function OrdersPage() {
   const hasPendingOrders = window.syncState?.hasPendingOrders ?? false
 
   return (
-    <div className="orders-page">
-      {/* Header con navegación */}
-      <div className="nav-header">
-        <div className="flex items-center gap-md">
-          <button 
-            className="back-btn home-btn"
+  <div className="bg-gray-50 min-h-screen flex flex-col">
+
+    {/* Header */}
+    <header className="bg-primary text-white shadow-md">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
+        {/* Volver al Dashboard */}
+        <div className="flex items-center gap-3">
+          <button
             onClick={() => navigate('/dashboard')}
+            className="text-2xl hover:text-secondary transition"
           >
-            🏠 Dashboard
+            🏠
           </button>
-          <h1 className="nav-title">📋 Gestión de Pedidos</h1>
+          <h1 className="text-lg font-semibold">📋 Gestión de Pedidos</h1>
         </div>
-        
-        {/* Sync Status */}
-        <div className="nav-actions">
-          <span className={`badge ${isOnline ? 'badge-success' : 'badge-error'}`}>
+        {/* Estado y último sync */}
+        <div className="flex items-center gap-2">
+          <span
+            className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+              isOnline ? 'bg-green-accent text-white' : 'bg-red-600 text-white'
+            }`}
+          >
             {isOnline ? '🟢 Online' : '🔴 Offline'}
           </span>
           {syncStats.lastSync && (
-            <span className="badge badge-gray">
+            <span className="px-2 py-1 text-xs bg-gray-light text-gray-dark rounded">
               {new Date(syncStats.lastSync).toLocaleTimeString()}
             </span>
           )}
         </div>
       </div>
+    </header>
 
-      {/* Tabs */}
-      <div className="orders-tabs">
-        <button
-          className={`tab-button ${activeTab === 'pending' ? 'active' : ''}`}
-          onClick={() => handleTabChange('pending')}
-        >
-          🕓 Pendientes
-          {syncStats.pendingCount > 0 && (
-            <span className="tab-badge">{syncStats.pendingCount}</span>
-          )}
-        </button>
-        
-        <button
-          className={`tab-button ${activeTab === 'processed' ? 'active' : ''}`}
-          onClick={() => handleTabChange('processed')}
-        >
-          ✅ Procesados
-          {syncStats.totalSynced > 0 && (
-            <span className="tab-badge-secondary">{syncStats.totalSynced}</span>
-          )}
-        </button>
-      </div>
-
-      {/* Action Bar */}
-      <div className="container">
-        <div className="flex gap-md" style={{marginBottom: 'var(--space-lg)'}}>
-          <button 
-            className="btn btn-ghost" 
-            onClick={handleRefresh}
-            disabled={isLoading}
+    {/* Tabs */}
+    <nav className="bg-white shadow-inner">
+      <div className="max-w-7xl mx-auto flex space-x-4 overflow-x-auto px-4 py-2">
+        {[
+          ['pending', '🕓 Pendientes', syncStats.pendingCount, 'bg-green-light'],
+          ['processed', '✅ Procesados', syncStats.totalSynced, 'bg-secondary']
+        ].map(([tab, label, count, badgeColor]) => (
+          <button
+            key={tab}
+            onClick={() => handleTabChange(tab)}
+            className={`relative pb-2 text-sm font-medium transition ${
+              activeTab === tab
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-gray-medium'
+            }`}
           >
-            🔄 Actualizar
+            {label}
+            {count > 0 && (
+              <span
+                className={`${badgeColor} text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center absolute -top-2 -right-0`}
+              >
+                {count}
+              </span>
+            )}
           </button>
-          
-          {hasPendingOrders && (
-            <button
-              className="btn btn-primary"
-              onClick={handleManualSync}
-              disabled={isSyncing || !isOnline}
-            >
-              {isSyncing ? '⏳ Sincronizando...' : '📤 Sincronizar'}
-            </button>
-          )}
-        </div>
+        ))}
       </div>
+    </nav>
 
-      {/* Content */}
-      <div className="orders-content">
-        {isLoading ? (
-          <LoadingState />
-        ) : error ? (
-          <ErrorState error={error} onRetry={handleRefresh} />
-        ) : pedidos.length === 0 ? (
-          <EmptyState tab={activeTab} />
-        ) : (
-          <OrdersList pedidos={pedidos} />
+    {/* Action Bar */}
+    <div className="max-w-7xl mx-auto px-4 py-4">
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={handleRefresh}
+          disabled={isLoading}
+          className="px-4 py-2 bg-gray-200 text-gray-dark rounded-md hover:bg-gray-light transition text-sm"
+        >
+          🔄 Actualizar
+        </button>
+        {hasPendingOrders && (
+          <button
+            onClick={handleManualSync}
+            disabled={isSyncing || !isOnline}
+            className="px-4 py-2 bg-secondary text-white rounded-md hover:bg-secondary/90 transition text-sm"
+          >
+            {isSyncing ? '⏳ Sincronizando...' : '📤 Sincronizar'}
+          </button>
         )}
       </div>
-
-      {/* FAB Sync (solo si hay pending y está online) */}
-      {hasPendingOrders && isOnline && activeTab === 'pending' && (
-        <button
-          className="fab-sync"
-          onClick={handleManualSync}
-          disabled={isSyncing}
-          title="Sincronizar pedidos pendientes"
-        >
-          {isSyncing ? '⏳' : '📤'}
-        </button>
-      )}
     </div>
+
+    {/* Content */}
+    <main className="flex-1 overflow-auto max-w-7xl mx-auto px-4 pb-20">
+      {isLoading ? (
+        <LoadingState />
+      ) : error ? (
+        <ErrorState error={error} onRetry={handleRefresh} />
+      ) : pedidos.length === 0 ? (
+        <EmptyState tab={activeTab} />
+      ) : (
+        <OrdersList pedidos={pedidos} />
+      )}
+    </main>
+
+    {/* FAB Sync */}
+    {hasPendingOrders && isOnline && activeTab === 'pending' && (
+      <button
+        onClick={handleManualSync}
+        disabled={isSyncing}
+        title="Sincronizar pedidos pendientes"
+        className="fixed bottom-8 right-4 bg-secondary text-white p-4 rounded-full shadow-lg hover:bg-secondary/90 transition"
+      >
+        {isSyncing ? '⏳' : '📤'}
+      </button>
+    )}
+  </div>
   )
 }
 
@@ -245,45 +257,141 @@ function OrderCard({ pedido }) {
     return <span className="badge badge-gray">❓ Desconocido</span>
   }
 
+  const handleWhatsAppShare = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const button = e.target.closest('button')
+    const originalText = button.innerHTML
+    
+    try {
+      // Mostrar indicador de carga
+      button.innerHTML = '⏳'
+      button.disabled = true
+      
+      // Obtener el pedido completo con items
+      const pedidoCompleto = await getPedidoWithItems(pedido.id)
+      shareViaWhatsApp(pedidoCompleto, pedidoCompleto.items || [])
+      
+      // Mostrar éxito temporal
+      button.innerHTML = '✅'
+      setTimeout(() => {
+        button.innerHTML = originalText
+        button.disabled = false
+      }, 1500)
+      
+    } catch (error) {
+      console.error('Error obteniendo pedido completo:', error)
+      // Fallback: compartir sin items
+      shareViaWhatsApp(pedido)
+      
+      // Restaurar botón
+      button.innerHTML = originalText
+      button.disabled = false
+    }
+  }
+
+  const handleCopyToClipboard = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const button = e.target.closest('button')
+    const originalText = button.innerHTML
+    
+    try {
+      // Mostrar indicador de carga
+      button.innerHTML = '⏳'
+      button.disabled = true
+      
+      // Obtener el pedido completo con items
+      const pedidoCompleto = await getPedidoWithItems(pedido.id)
+      const success = await copyPedidoToClipboard(pedidoCompleto, pedidoCompleto.items || [])
+      
+      if (success) {
+        // Mostrar feedback visual temporal
+        button.innerHTML = '✅'
+        setTimeout(() => {
+          button.innerHTML = originalText
+          button.disabled = false
+        }, 1500)
+      } else {
+        // Error al copiar
+        button.innerHTML = '❌'
+        setTimeout(() => {
+          button.innerHTML = originalText
+          button.disabled = false
+        }, 1500)
+      }
+    } catch (error) {
+      console.error('Error obteniendo pedido completo:', error)
+      
+      // Fallback: copiar sin items
+      try {
+        const success = await copyPedidoToClipboard(pedido)
+        if (success) {
+          button.innerHTML = '✅'
+        } else {
+          button.innerHTML = '❌'
+        }
+      } catch (fallbackError) {
+        button.innerHTML = '❌'
+      }
+      
+      setTimeout(() => {
+        button.innerHTML = originalText
+        button.disabled = false
+      }, 1500)
+    }
+  }
+
   return (
-    <Link to={`/pedidos/${pedido.id}`} className="card card-responsive" style={{textDecoration: 'none', color: 'inherit'}}>
-      <div className="card-padding">
-        <div className="flex justify-between items-center" style={{marginBottom: 'var(--space-md)'}}>
+
+  <div className="relative">
+    <Link
+      to={`/pedidos/${pedido.id}`}
+      className="block bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden"
+    >
+      <div className="p-4 space-y-4">
+        {/* Encabezado: ID y total */}
+        <div className="flex justify-between items-start">
           <div>
-            <h3 style={{margin: 0, fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--gray-900)'}}>
-              #{pedido.id}
-            </h3>
-            <p style={{margin: '0.25rem 0 0 0', color: 'var(--gray-600)', fontSize: 'var(--font-size-sm)'}}>
-              {pedido.ctename}
-            </p>
+            <h3 className="text-primary font-bold text-lg">#{pedido.id}</h3>
+            <p className="text-gray-medium text-sm mt-1">{pedido.ctename}</p>
           </div>
-          <div style={{textAlign: 'right'}}>
-            <span style={{fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--success-color)'}}>
-              ${pedido.total_amount?.toFixed(2) || '0.00'}
+          <div className="text-right">
+            <span className="text-green-accent font-bold text-xl">
+              ${pedido.total_amount?.toFixed(2) ?? '0.00'}
             </span>
           </div>
         </div>
-        
-        <div className="flex justify-between items-center" style={{paddingTop: 'var(--space-md)', borderTop: '1px solid var(--gray-100)'}}>
-          <div className="stack stack-sm">
-            <span style={{fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)'}}>
-              📅 {formatDate(pedido.created_at)}
-            </span>
-            {pedido.almcnt && (
-              <span style={{fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)'}}>
-                🏪 Almacén {pedido.almcnt}
-              </span>
-            )}
+
+        {/* Detalles: fecha, almacén y estado */}
+        <div className="flex justify-between items-center border-t border-gray-light pt-4">
+          <div className="space-y-1 text-xs text-gray-medium">
+            <div>📅 {formatDate(pedido.created_at)}</div>
+            {pedido.almcnt && <div>🏪 Almacén {pedido.almcnt}</div>}
           </div>
-          
-          <div className="flex items-center gap-sm">
+          <div className="flex items-center gap-2">
             {getStatusBadge(pedido.status, pedido.sync_status)}
-            <span style={{color: 'var(--gray-300)', fontSize: 'var(--font-size-lg)'}}>›</span>
+            <span className="text-gray-light text-xl">›</span>
           </div>
         </div>
       </div>
     </Link>
+
+    {/* Botón flotante de acción */}
+    <button
+      onClick={handleCopyToClipboard}
+      title="Copiar información"
+      className="absolute top-2 right-2 bg-gray-200 hover:bg-gray-light text-gray-dark p-2 rounded-full shadow-md transition"
+    >
+      📋
+    </button>
+  </div>
+
+
   )
+  
 }
 
 /**

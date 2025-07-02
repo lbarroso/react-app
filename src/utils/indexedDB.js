@@ -9,13 +9,29 @@ const PEDIDOS_ITEMS_STORE = STORES.PEDIDOS_ITEMS
 
 /**
  * Crea un nuevo pedido con cabecera e items en una sola transacción
- * @param {object} header - Cabecera del pedido
+ * @param {object} header - Cabecera del pedido (DEBE incluir customer_id)
  * @param {Array} items - Items del pedido
  * @returns {Promise<number>} ID del pedido creado
+ * 
+ * @example
+ * const header = {
+ *   customer_id: 123,  // ⭐ REQUERIDO: ID de Supabase del cliente
+ *   almcnt: 2033,
+ *   ctecve: 54,
+ *   ctename: "CLIENTE EJEMPLO",
+ *   user_id: "user_temp",
+ *   total_amount: 100.50,
+ *   notes: ""
+ * }
  */
 export async function createPedido(header, items) {
   if (!header || !Array.isArray(items) || items.length === 0) {
     throw new Error('Header y items son requeridos')
+  }
+
+  // ⭐ VALIDAR que customer_id esté presente
+  if (!header.customer_id || typeof header.customer_id !== 'number') {
+    throw new Error('customer_id es requerido y debe ser el ID de Supabase del cliente')
   }
 
   try {
@@ -26,6 +42,7 @@ export async function createPedido(header, items) {
     const pedidosStore = tx.objectStore(PEDIDOS_STORE)
     const pedidoData = {
       ...header,
+      customer_id: header.customer_id,  // ⭐ NUEVO: ID del cliente de Supabase para sync
       status: 'pending',
       sync_status: 'pending',
       created_at: Date.now(),
@@ -232,24 +249,97 @@ export async function getPendingPedidosDeep() {
 }
 
 /**
- * Marca pedido como procesado con ID remoto
+ * Obtiene items de un pedido específico por ID
+ * @param {number} pedidoId - ID del pedido
+ * @returns {Promise<Array>} Items del pedido
+ */
+export async function getItemsByPedidoId(pedidoId) {
+  if (!pedidoId) {
+    return []
+  }
+
+  try {
+    const db = await getDB()
+    const tx = db.transaction(PEDIDOS_ITEMS_STORE, 'readonly')
+    const store = tx.objectStore(PEDIDOS_ITEMS_STORE)
+    const items = await store.index('by-pedido').getAll(pedidoId)
+    await tx.done
+    
+    console.log(`📦 ${items.length} items cargados para pedido ${pedidoId}`)
+    return items.sort((a, b) => a.id - b.id) // Ordenar por ID
+    
+  } catch (error) {
+    console.error('Error obteniendo items del pedido:', error)
+    return []
+  }
+}
+
+/**
+ * Obtiene un pedido completo con sus items (para cualquier status)
+ * @param {number} pedidoId - ID del pedido
+ * @returns {Promise<Object|null>} Pedido con items anidados
+ */
+export async function getPedidoWithItems(pedidoId) {
+  if (!pedidoId) {
+    return null
+  }
+
+  try {
+    const db = await getDB()
+    const tx = db.transaction([PEDIDOS_STORE, PEDIDOS_ITEMS_STORE], 'readonly')
+    
+    // 1. Obtener pedido
+    const pedidosStore = tx.objectStore(PEDIDOS_STORE)
+    const pedido = await pedidosStore.get(pedidoId)
+    
+    if (!pedido) {
+      await tx.done
+      return null
+    }
+    
+    // 2. Obtener items
+    const itemsStore = tx.objectStore(PEDIDOS_ITEMS_STORE)
+    const items = await itemsStore.index('by-pedido').getAll(pedidoId)
+    
+    await tx.done
+    
+    console.log(`📋 Pedido ${pedidoId} cargado con ${items.length} items`)
+    return {
+      ...pedido,
+      items: items.sort((a, b) => a.id - b.id)
+    }
+    
+  } catch (error) {
+    console.error('Error obteniendo pedido con items:', error)
+    return null
+  }
+}
+
+/**
+ * Marca un pedido como procesado en IndexedDB Y en Supabase
  * @param {number} id - ID local del pedido
- * @param {number} remoteId - ID remoto de Supabase
- * @returns {Promise<void>}
+ * @param {number} remoteId - ID remoto en Supabase
  */
 export async function markPedidoProcessed(id, remoteId) {
   if (!id) {
     throw new Error('ID requerido')
   }
 
+  if (!remoteId) {
+    throw new Error('Remote ID requerido para marcar como procesado')
+  }
+
   try {
+    console.log(`🔄 Marcando pedido ${id} como procesado (remote: ${remoteId})...`)
+
+    // 1. Actualizar en IndexedDB
     const db = await getDB()
     const tx = db.transaction(PEDIDOS_STORE, 'readwrite')
     const store = tx.objectStore(PEDIDOS_STORE)
 
     const pedido = await store.get(id)
     if (!pedido) {
-      throw new Error(`Pedido ${id} no encontrado`)
+      throw new Error(`Pedido ${id} no encontrado en IndexedDB`)
     }
 
     pedido.status = 'processed'
@@ -261,10 +351,30 @@ export async function markPedidoProcessed(id, remoteId) {
     await store.put(pedido)
     await tx.done
 
-    console.log(`✅ Pedido ${id} marcado como procesado (remote: ${remoteId})`)
+    console.log(`✅ IndexedDB: Pedido ${id} marcado como procesado`)
+
+    // 2. Actualizar en Supabase
+    const { supabase } = await import('../supabaseClient')
+    
+    const { error: supabaseError } = await supabase
+      .from('orders')
+      .update({ 
+        status: 'processed',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', remoteId)
+
+    if (supabaseError) {
+      console.warn(`⚠️ Error actualizando status en Supabase: ${supabaseError.message}`)
+      // No lanzar error - IndexedDB ya se actualizó exitosamente
+      console.log(`⚠️ Pedido ${id} marcado como procesado en IndexedDB, pero falló actualización en Supabase`)
+    } else {
+      console.log(`✅ Supabase: Order ${remoteId} marcado como procesado`)
+      console.log(`🎉 COMPLETADO: Pedido ${id} procesado en IndexedDB y Supabase`)
+    }
 
   } catch (error) {
-    console.error('Error marcando pedido procesado:', error)
+    console.error('❌ Error marcando pedido procesado:', error)
     throw new Error(`Error al procesar pedido: ${error.message}`)
   }
 }
@@ -365,7 +475,7 @@ export async function obtenerItemDelCarrito(product_id) {
 
 /**
  * Guarda o actualiza una lista de clientes en IndexedDB usando upsert masivo
- * @param {Array<{almcnt: number, ctecve: number, name: string}>} clientes - Lista de clientes
+ * @param {Array<{id: number, almcnt: number, ctecve: number, name: string}>} clientes - Lista de clientes
  * @returns {Promise<number>} Número de clientes procesados
  */
 export async function cacheClients(clientes = []) {
@@ -387,15 +497,16 @@ export async function cacheClients(clientes = []) {
         continue
       }
 
-      const { almcnt, ctecve, name } = cliente
+      const { id, almcnt, ctecve, name } = cliente
       
-      // Validar campos requeridos
-      if (typeof almcnt !== 'number' || typeof ctecve !== 'number' || !name) {
+      // Validar campos requeridos (incluyendo el nuevo campo id)
+      if (typeof id !== 'number' || typeof almcnt !== 'number' || typeof ctecve !== 'number' || !name) {
         console.warn('Cliente con datos inválidos:', cliente)
         continue
       }
 
       await store.put({
+        id,          // ⭐ NUEVO: ID de Supabase para relación con orders
         almcnt,
         ctecve,
         name: String(name).trim() // Asegurar que name sea string y sin espacios extra
@@ -416,7 +527,7 @@ export async function cacheClients(clientes = []) {
 /**
  * Obtiene todos los clientes de un almacén específico, ordenados alfabéticamente
  * @param {number} almcnt - Código del almacén
- * @returns {Promise<Array<{almcnt: number, ctecve: number, name: string}>>}
+ * @returns {Promise<Array<{id: number, almcnt: number, ctecve: number, name: string}>>}
  */
 export async function getClientsLocal(almcnt) {
   if (typeof almcnt !== 'number' || almcnt <= 0) {
@@ -448,7 +559,7 @@ export async function getClientsLocal(almcnt) {
  * @param {number} almcnt - Código del almacén
  * @param {string} searchTerm - Término de búsqueda
  * @param {number} limit - Máximo número de resultados (default: 50)
- * @returns {Promise<Array<{almcnt: number, ctecve: number, name: string}>>}
+ * @returns {Promise<Array<{id: number, almcnt: number, ctecve: number, name: string}>>}
  */
 export async function searchClientsByName(almcnt, searchTerm, limit = 50) {
   if (typeof almcnt !== 'number' || almcnt <= 0) {
@@ -501,7 +612,7 @@ export async function searchClientsByName(almcnt, searchTerm, limit = 50) {
  * Encuentra un cliente específico por su código
  * @param {number} almcnt - Código del almacén  
  * @param {number} ctecve - Código del cliente
- * @returns {Promise<{almcnt: number, ctecve: number, name: string}|null>}
+ * @returns {Promise<{id: number, almcnt: number, ctecve: number, name: string}|null>}
  */
 export async function findClientByCode(almcnt, ctecve) {
   if (typeof almcnt !== 'number' || typeof ctecve !== 'number') {

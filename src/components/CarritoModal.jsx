@@ -140,6 +140,11 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
     console.log('📦 Creando pedido real:', orderData)
     
     try {
+      // ⭐ VALIDAR que el cliente tenga ID de Supabase
+      if (!orderData.cliente.id || typeof orderData.cliente.id !== 'number') {
+        throw new Error('El cliente seleccionado no tiene ID de Supabase. Recarga los clientes primero.')
+      }
+      
       // Calcular totales
       const totalAmount = orderData.items.reduce((sum, item) => sum + item.total_price, 0)
       
@@ -148,6 +153,7 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
       
       // Preparar header del pedido
       const header = {
+        customer_id: orderData.cliente.id,  // ⭐ NUEVO: ID de Supabase del cliente
         almcnt: orderData.almcnt,
         ctecve: orderData.cliente.ctecve,
         ctename: orderData.cliente.name,
@@ -174,12 +180,34 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
       const orderId = await createPedido(header, items)
       console.log(`✅ Pedido creado con ID: ${orderId}`)
       
+      // 🚀 SINCRONIZACIÓN INMEDIATA: Disparar sync justo después de crear el pedido
+      try {
+        if (window.syncState && window.syncState.manualSync) {
+          console.log('🚀 Iniciando sincronización inmediata del pedido recién creado...')
+          const syncResult = await window.syncState.manualSync()
+          
+          if (syncResult.success && syncResult.synced > 0) {
+            console.log(`✅ Sincronización inmediata exitosa: ${syncResult.synced} pedidos sincronizados`)
+          } else {
+            console.log('⚠️ Sincronización inmediata completada sin nuevos pedidos sincronizados')
+          }
+        } else {
+          console.warn('⚠️ Sistema de sincronización no disponible - el pedido se sincronizará automáticamente')
+        }
+      } catch (syncError) {
+        console.warn('⚠️ Error en sincronización inmediata (el pedido se sincronizará automáticamente):', syncError.message)
+      }
+      
       // Limpiar carrito del almacén
       await clearCarritoByAlmcnt(almcnt)
       console.log('✅ Carrito limpiado')
       
-      // Mostrar confirmación
-      alert(`✅ Pedido #${orderId} creado exitosamente!\n\nCliente: ${orderData.cliente.name}\nTotal: $${totalAmount.toFixed(2)}\n\nRedirigiendo a gestión de pedidos...`)
+      // Mostrar confirmación con info de sincronización
+      const syncMessage = window.syncState?.isOnline 
+        ? '\n📤 Sincronizado automáticamente con Supabase!'
+        : '\n📱 Guardado localmente - se sincronizará cuando esté online'
+        
+      alert(`✅ Pedido #${orderId} creado exitosamente!${syncMessage}\n\nCliente: ${orderData.cliente.name}\nTotal: $${totalAmount.toFixed(2)}\n\nRedirigiendo a gestión de pedidos...`)
       
       // Cerrar modal y navegar a pedidos
       setModalState('CARRITO')

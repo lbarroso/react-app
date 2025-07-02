@@ -684,4 +684,30 @@
     width: 36px;
     height: 36px;
   }
+}
+
+/* =================================
+   BOTONES DE COMPARTIR
+   ================================= */
+
+.whatsapp-share-btn {
+  background: linear-gradient(135deg, #25d366 0%, #20b858 100%) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.whatsapp-share-btn:hover {
+  background: linear-gradient(135deg, #20b858 0%, #1da851 100%) !important;
+  transform: translateY(-1px);
+}
+
+.copy-share-btn {
+  background: linear-gradient(135deg, #6c63ff 0%, #5a52d5 100%) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.copy-share-btn:hover {
+  background: linear-gradient(135deg, #5a52d5 0%, #4c44c4 100%) !important;
+  transform: translateY(-1px);
 } 

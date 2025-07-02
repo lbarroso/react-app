@@ -2,6 +2,9 @@
 .dashboard-container {
   min-height: 100vh;
   background: #f8f9fa;
+  padding-top: 140px; /* Espacio para navbar fijo */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
 }
 
 .main-content {
@@ -253,6 +256,10 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .dashboard-container {
+    padding-top: 120px; /* Ajuste para navbar móvil más compacto */
+  }
+
   .main-content {
     padding: 1rem;
   }

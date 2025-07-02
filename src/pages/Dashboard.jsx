@@ -15,8 +15,6 @@ import {
 import useOnlineStatus from '../utils/useOnlineStatus'
 import ProductCard from '../components/ProductCard'
 import CarritoModal from '../components/CarritoModal'
-import './Dashboard.css';
-import './Navbar.css';
 
 export default function Dashboard () {
   const navigate = useNavigate()
@@ -131,63 +129,58 @@ export default function Dashboard () {
   const pendingOrdersCount = syncStats.pendingCount || 0
 
   return (
-    <div className="dashboard-container">
+    <div className="bg-gray-50 text-gray-800">
 
-      <nav className="navbar">
+      <header className="fixed top-0 inset-x-0 z-50 bg-primary text-white shadow-md">
 
-        <div className="navbar-container">
+        <div className="flex items-center justify-between px-4 py-3">
           
-            <div className="navbar-brand">
-              <h1>📦 Pedidos Offline</h1>
-              <span className="navbar-subtitle">                <span className={`connection-indicator}`}>
-                  {online ? '🌐 Conectado a Internet' : '⚠️ Trabajando sin conexión'}
-                </span>
-                </span>
-            </div>
-            <div className='navbar-actions'>
-          
-                <button 
-                  className="nav-btn orders-btn"
-                  onClick={() => navigate('/pedidos')}
-                >
-                  📋 Pedidos
-                  {pendingOrdersCount > 0 && (
-                    <sup className="orders-badge">{pendingOrdersCount}</sup>
-                  )}
-                </button>
-                <button
-                  className="nav-btn"
-                  onClick={() => navigate('/config')}
-                >
-                  ⚙️ Config
-                </button>
-                <button
-                  className="nav-btn cart-btn"
-                  disabled={totalEnCarrito === 0}
-                  onClick={() => setModalAbierto(true)}
-                >
-                  🛒 Carrito{totalEnCarrito > 0 ? <sup className="cart-badge">{totalEnCarrito}</sup> : ''}
-                </button>
+			<div className="flex items-center gap-2">
+			  <span className="text-2xl">📦</span>
+				<span className={`px-3 py-1 rounded-full text-sm font-medium ${ online ? 'bg-white bg-opacity-30 text-white' : 'bg-gray-dark text-white' }`}>
+					{online ? '🌐 Conectado' : '⚠️ Offline'}
+				</span>		
+			</div>
+			
+			<div className="flex items-center gap-3">
+		  
+				<button 
+				  className="flex items-center gap-1 bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded-md text-sm font-semibold transition"
+				  onClick={() => navigate('/pedidos')}
+				>
+				  📋 Pedidos
+				  {pendingOrdersCount > 0 && (
+					<sup className="ml-1 bg-yellow-400 text-white text-xs font-bold rounded-full px-2">{pendingOrdersCount}</sup>
+				  )}
+				</button>
 
-            </div>
+				<button
+				  className="relative flex items-center gap-1 bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded-md text-sm font-semibold transition disabled:opacity-50"
+				  disabled={totalEnCarrito === 0}
+				  onClick={() => setModalAbierto(true)}
+				>
+				  🛒 Carrito{totalEnCarrito > 0 ? <sup className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{totalEnCarrito}</sup> : ''}
+				</button>
+
+			</div>
 
         </div>
-
+		
         {/* Buscador al estilo Aurrera */}
-        <div className="search-bar-container">
-          <div className="search-input-wrapper">
-            <span className="search-icon">🔍</span>
+        <div className="bg-secondary px-4 pb-3 shadow-inner">
+          <div className="max-w-7xl mx-auto flex items-center bg-gray-100 rounded-full px-4 py-2">
+            <span className="text-gray-500 mr-2">🔍</span>
             <input
               ref={inputRef}
               type="text"
-              className="search-input"
+              className="flex-1 bg-transparent text-gray-800 placeholder-gray-500 focus:outline-none"
               placeholder="Buscar producto por nombre o código"
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
             />
             {busqueda && (
               <button
-                className="clear-button"
+                className="ml-2 text-gray-500 hover:text-red-500 transition"
                 onClick={limpiarBusqueda}
                 aria-label="Limpiar búsqueda"
               >
@@ -197,13 +190,16 @@ export default function Dashboard () {
           </div>
         </div>
 
-      </nav>
+      </header>
 
-      <main className="main-content">
+      {/* separador para el header */}
+      <div className="pt-[112px]" />
+	  
+      <main className="flex-1 px-4 pb-[76px]">
 
-        <h2>Catálogo de Productos</h2>
+        <h2 className="text-2xl font-semibold text-brandGreen mb-4" >Catálogo de Productos</h2>
 
-        <div className="product-grid">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {productosFiltrados.length
             ? productosFiltrados.map(p => (
                 <ProductCard
@@ -215,11 +211,31 @@ export default function Dashboard () {
                   disminuirCantidad={disminuirCantidad}
                 />
               ))
-            : <p>No se encontraron productos.</p>}
+            : <p className="text-center text-gray-500">No se encontraron productos.</p>}
         </div>
 
       </main>
 
+      {/* FOOTER móvil */}
+		<footer className="fixed bottom-0 inset-x-0 z-50 bg-green-accent border-t shadow">
+		  <nav className="flex justify-around py-2 text-xs text-white">
+			{[
+			  ['🏠', 'Ventas', ''],
+			  ['🔍', 'Novedades', ''],
+			  ['🛒', 'Pedido Sugerido', ''],
+			  ['👤', 'Cuenta', ''],  // <─ añadimos la ruta aquí
+			].map(([icon, label, to]) => (
+			  <button
+				key={label}
+				onClick={() => navigate(to)}
+				className="flex flex-col items-center gap-1"
+			  >
+				<span className="text-lg">{icon}</span>
+				<span>{label}</span>
+			  </button>
+			))}
+		  </nav>
+		</footer>
 
       <CarritoModal
         abierto={modalAbierto}
