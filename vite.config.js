@@ -38,6 +38,18 @@ export default defineConfig({
       workbox: {
         runtimeCaching: [
           {
+            urlPattern: ({ url }) => url.pathname.startsWith('/imagenes/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'producto-imagenes',
+              expiration: {
+                maxEntries: 500,
+                maxAgeSeconds: 60 * 60 * 24 * 60 // 60 días
+              },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
+          {
             urlPattern: /^https:\/\/.*supabase\.co\/.*/i,
             handler: 'NetworkFirst',
             options: {

@@ -1,7 +1,6 @@
 /* src/components/CarritoModal.jsx */
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import './CarritoModal.css'
 import {
   obtenerProductosDelCarrito,
   actualizarCantidadEnCarrito,
@@ -235,17 +234,30 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
   if (modalState === 'CLIENT_SELECTION') {
     if (!almcnt) {
       return (
-        <div className="carrito-overlay">
-          <div className="carrito-modal">
-            <div className="modal-header">
-              <h3>⚠️ Error</h3>
-              <button onClick={cerrar}>✖</button>
+        <div className="fixed inset-0 bg-primary flex items-center justify-center z-50 p-4">
+          <div className="bg-primary rounded-2xl shadow-2xl max-w-md w-full mx-4">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-red-600 flex items-center">
+                <span className="text-2xl mr-2">⚠️</span>
+                Error
+              </h3>
+              <button 
+                onClick={cerrar}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+              >
+                ✖
+              </button>
             </div>
-            <div className="modal-body">
-              <p>No se pudo cargar la información del almacén.</p>
+            <div className="p-6">
+              <p className="text-gray-700">No se pudo cargar la información del almacén.</p>
             </div>
-            <div className="modal-footer">
-              <button className="btn-cerrar" onClick={volverAlCarrito}>Volver al Carrito</button>
+            <div className="p-6 border-t border-gray-200">
+              <button 
+                className="w-full bg-primary text-white py-3 px-4 rounded-xl font-semibold hover:bg-primary/90 transition-colors"
+                onClick={volverAlCarrito}
+              >
+                Volver al Carrito
+              </button>
             </div>
           </div>
         </div>
@@ -264,79 +276,173 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
     )
   }
 
-  // Mostrar CarritoModal normal
+  // Mostrar CarritoModal normal con diseño Tailwind mejorado
   return (
-    <div className="carrito-overlay">
-      <div className="carrito-modal">
-        <div className="modal-header">
-          <h3>🛒 Carrito</h3>
-          <button onClick={cerrar}>✖</button>
+    <div className="fixed inset-0 bg-primary  flex items-end sm:items-center justify-center z-50">
+      <div className="bg-white w-full sm:max-w-2xl sm:mx-4 h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col">
+        
+        {/* Header mejorado */}
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-green-accent from-primary to-secondary text-white sm:rounded-t-2xl">
+          <div className="flex items-center">
+            <span className="text-2xl mr-3">🛒</span>
+            <div>
+              <h3 className="text-xl sm:text-2xl font-bold">Mi Carrito</h3>
+              <p className="text-sm opacity-90">
+                {online ? '🌐 Conectado' : '📱 Modo Offline'}
+              </p>
+            </div>
+          </div>
+          <button 
+            onClick={cerrar}
+            className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-2 transition-colors"
+          >
+            <span className="text-xl font-bold">✖</span>
+          </button>
         </div>
 
-        <div className="modal-body">
+        {/* Body scrolleable */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {productosCarrito.length === 0 ? (
-            <p>Tu carrito está vacío.</p>
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🛒</div>
+              <h4 className="text-xl font-semibold text-gray-700 mb-2">Tu carrito está vacío</h4>
+              <p className="text-gray-500">Agrega productos para comenzar tu pedido</p>
+            </div>
           ) : (
-            productosCarrito.map(item => {
-              const imagen = online
-                ? `/imagenes/${item.image || 'imagen.jpg'}`
-                : '/imagenes/imagen.jpg'
-              return (
-                <div key={item.product_id} className="carrito-producto">
-                  <img src={imagen} alt={item.name} />
-                  <div className="carrito-info">
-                    <h4>
-                      {item.name.length > 25
-                        ? item.name.slice(0, 25) + '…'
-                        : item.name}
-                    </h4>
-                    <small>{item.code} {item.unit}</small>
-                    <div><strong>${item.total_price.toFixed(2)}</strong></div>
+            <div className="space-y-4">
+              {productosCarrito.map(item => {
+                const imagen = online
+                  ? `/imagenes/${item.image || 'imagen.jpg'}`
+                  : '/imagenes/imagen.jpg'
+                
+                return (
+                  <div key={item.product_id} className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:shadow-md transition-shadow">
+                    <div className="flex gap-4">
+                      
+                      {/* Imagen del producto */}
+                      <div className="flex-shrink-0">
+                        <img 
+                          src={imagen} 
+                          alt={item.name}
+                          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg bg-gray-200"
+                          onError={(e) => { e.target.src = '/imagenes/placeholder.png' }}
+                        />
+                      </div>
+                      
+                      {/* Info del producto */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1 min-w-0 pr-2">
+                            <h4 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight">
+                              {item.name.length > 40
+                                ? item.name.slice(0, 40) + '…'
+                                : item.name}
+                            </h4>
+                            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                              <span className="font-medium">{item.code}</span> • {item.unit}
+                            </p>
+                          </div>
+                          
+                          {/* Botón eliminar */}
+                          <button 
+                            onClick={() => eliminar(item.product_id)}
+                            className="flex-shrink-0 bg-primary hover:bg-red-200 text-white rounded-lg p-2 transition-colors"
+                            title="Eliminar producto"
+                          >
+                            <span className="text-white">🗑️</span>
+                          </button>
+                        </div>
+                        
+                        {/* Cálculo detallado del precio */}
+                        <div className="bg-white rounded-lg p-3 border border-gray-200 mb-3">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-600">Precio unitario:</span>
+                            <span className="font-semibold">${item.unit_price.toFixed(2)}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm mt-1">
+                            <span className="text-gray-600">Cantidad:</span>
+                            <span className="font-semibold">{item.quantity} {item.unit}</span>
+                          </div>
+                          <div className="border-t border-gray-200 mt-2 pt-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-600 text-sm">
+                                ${item.unit_price.toFixed(2)} × {item.quantity} =
+                              </span>
+                              <span className="font-bold text-primary text-lg">
+                                ${item.total_price.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Controles de cantidad */}
+                        <div className="flex justify-center">
+                          <NumberStepper
+                            value={item.quantity}
+                            min={1}
+                            max={9999}
+                            onChange={(newQuantity) => {
+                              actualizarCantidadEnCarrito(item.product_id, newQuantity)
+                              setCarrito(prev => ({ ...prev, [item.product_id]: newQuantity }))
+                              cargarCarrito()
+                            }}
+                            size="small"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="controles-cantidad">
-                    <NumberStepper
-                      value={item.quantity}
-                      min={1}
-                      max={9999}
-                      onChange={(newQuantity) => {
-                        actualizarCantidadEnCarrito(item.product_id, newQuantity)
-                        setCarrito(prev => ({ ...prev, [item.product_id]: newQuantity }))
-                        cargarCarrito()
-                      }}
-                      size="small"
-                    />
-                    <button 
-                      onClick={() => eliminar(item.product_id)}
-                      className="btn btn-icon-sm"
-                      style={{backgroundColor: 'var(--error-color)', color: 'white', marginLeft: 'var(--space-sm)'}}
-                    >
-                      🗑
-                    </button>
-                  </div>
-                </div>
-              )
-            })
+                )
+              })}
+            </div>
           )}
         </div>
 
-        <div className="totales">
-          <div>Total productos: <strong>{totalCantidad}</strong></div>
-          <div>Total a pagar: <strong>${totalPagar.toFixed(2)}</strong></div>
-        </div>
-
-        <div className="modal-footer">
-          <button className="btn-vaciar" onClick={vaciar} disabled={!productosCarrito.length}>
-            Vaciar
-          </button>
-          <button 
-            className="btn-checkout" 
-            onClick={procederAlCheckout}
-            disabled={productosCarrito.length === 0}
-          >
-            Proceder al Checkout
-          </button>
-          <button className="btn-cerrar" onClick={cerrar}>Cerrar</button>
-        </div>
+        {/* Footer con totales y acciones */}
+        {productosCarrito.length > 0 && (
+          <div className="border-t border-gray-200 bg-gray-50 p-4 sm:p-6 sm:rounded-b-2xl">
+            
+            {/* Resumen de totales */}
+            <div className="bg-white rounded-xl p-4 mb-4 border border-gray-200">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-gray-600">Total de productos:</span>
+                <span className="font-semibold text-lg">{totalCantidad}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-900 font-semibold">Total a pagar:</span>
+                <span className="font-bold text-2xl text-primary">
+                  ${totalPagar.toFixed(2)}
+                </span>
+              </div>
+            </div>
+            
+            {/* Botones de acción */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button 
+                className="flex-1 bg-primary hover:bg-red-200 text-white py-3 px-4 rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={vaciar} 
+                disabled={!productosCarrito.length}
+              >
+                🗑️ Vaciar Carrito
+              </button>
+              
+              <button 
+                className="flex-1 bg-green-accent from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white py-3 px-6 rounded-xl font-semibold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={procederAlCheckout}
+                disabled={productosCarrito.length === 0}
+              >
+                🚀 Proceder al Checkout
+              </button>
+            </div>
+            
+            <button 
+              className="w-full mt-3 bg-secondary hover:bg-gray-300 text-white py-3 px-4 rounded-xl font-semibold transition-colors"
+              onClick={cerrar}
+            >
+              Seguir Comprando
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -11,6 +11,21 @@ export default function ProductCard({
 }) {
 
   const src = getProductImageSrc(producto.image);
+  
+  // Debug: ver qué imagen se está intentando cargar
+  console.log('ProductCard - producto.image:', producto.image, 'src generado:', src);
+
+  const handleImageError = (e) => {
+    console.log('Error cargando imagen:', e.target.src);
+    // Evitar loops infinitos verificando si ya es el placeholder
+    if (!e.target.src.includes('placeholder')) {
+      e.target.src = '/imagenes/placeholder.png';
+      console.log('Cambiando a placeholder.png');
+    } else {
+      console.log('Ya es placeholder, intentando placeholder.jpg');
+      e.target.src = '/imagenes/placeholder.jpg';
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow border border-gray-200 flex flex-col overflow-hidden">
@@ -19,9 +34,8 @@ export default function ProductCard({
         <img
           src={src}
           alt={producto.name}
-          className="product-image"
           loading="lazy"
-          onError={(e) => { e.target.src = '/imagenes/placeholder.png'; }}
+          onError={handleImageError}
           className="w-full h-40 sm:h-44 md:h-48 object-cover bg-gray-light"
         />
 		{producto.stock <= 0 && (
