@@ -50,6 +50,7 @@ export default function Dashboard () {
           .from('products')
           .select('*')
           .eq('almcnt', almcnt)
+          .gt('stock', 0)  // Solo productos con stock > 0
 
         if (error) {
           console.error('Error al obtener productos:', error.message)
@@ -218,11 +219,12 @@ export default function Dashboard () {
 
       {/* FOOTER móvil */}
 		<footer className="fixed bottom-0 inset-x-0 z-50 bg-green-accent border-t shadow">
+
 		  <nav className="flex justify-around py-2 text-xs text-white">
 			{[
-			  ['🏠', 'Ventas', ''],
-			  ['🔍', 'Novedades', ''],
-			  ['🛒', 'Pedido Sugerido', ''],
+			  ['🏠', 'Adamin', '/admin'],
+			  ['🔍', 'Ofertas', ''],
+			  ['🛒', 'Novedades', ''],
 			  ['👤', 'Cuenta', ''],  // <─ añadimos la ruta aquí
 			].map(([icon, label, to]) => (
 			  <button

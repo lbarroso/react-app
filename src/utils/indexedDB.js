@@ -391,7 +391,10 @@ export async function guardarProductos(productos) {
 
 export async function obtenerProductosLocal() {
   const db = await getDB()
-  return await db.getAll(PRODUCTOS_STORE)
+  const productos = await db.getAll(PRODUCTOS_STORE)
+  
+  // Filtrar solo productos con stock > 0
+  return productos.filter(producto => producto.stock > 0)
 }
 
 export async function limpiarProductos() {

@@ -1,0 +1,6 @@
+category_id,name,code,barcode,description,price,stock,unit,image,almcnt
+1,Producto Test 1,TEST001,1234567890123,Descripción del producto test 1,25.50,100,pieza,https://ejemplo.com/imagen1.jpg,1
+2,Producto Test 2,TEST002,1234567890124,Descripción del producto test 2,45.00,50,pieza,https://ejemplo.com/imagen2.jpg,1
+1,Producto Test 3,TEST003,1234567890125,Descripción del producto test 3,15.75,200,pieza,https://ejemplo.com/imagen3.jpg,1
+3,Producto Test 4,TEST004,1234567890126,Descripción del producto test 4,89.99,25,pieza,https://ejemplo.com/imagen4.jpg,1
+2,Producto Test 5,TEST005,1234567890127,Descripción del producto test 5,12.50,150,pieza,https://ejemplo.com/imagen5.jpg,1 
