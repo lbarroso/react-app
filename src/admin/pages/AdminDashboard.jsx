@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { FaUpload, FaUsers, FaChartBar, FaCog, FaDownload } from 'react-icons/fa'
+import { FaUpload, FaUsers, FaChartBar, FaCog, FaDownload, FaBook } from 'react-icons/fa'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
@@ -24,6 +24,16 @@ export default function AdminDashboard() {
       route: '/admin/export-orders',
       bgColor: 'bg-green-500',
       hoverColor: 'hover:bg-green-600'
+    },
+    {
+      id: 'catalog',
+      title: 'Catálogo Digital',
+      description: 'Generar catálogo PDF con productos',
+      icon: FaBook,
+      enabled: true,
+      route: '/admin/catalog',
+      bgColor: 'bg-purple-500',
+      hoverColor: 'hover:bg-purple-600'
     },
     {
       id: 'users',

@@ -379,22 +379,48 @@ export async function markPedidoProcessed(id, remoteId) {
   }
 }
 
-export async function guardarProductos(productos) {
+export async function guardarProductos(productos, almcnt = null) {
   const db = await getDB()
   const tx = db.transaction(PRODUCTOS_STORE, 'readwrite')
   const store = tx.objectStore(PRODUCTOS_STORE)
+  
+  let eliminados = 0
+  
+  // Si se proporciona almcnt, limpiar productos de ese almacén antes de guardar
+  if (almcnt) {
+    const productosExistentes = await store.getAll()
+    for (const producto of productosExistentes) {
+      if (producto.almcnt === almcnt) {
+        await store.delete(producto.id)
+        eliminados++
+      }
+    }
+  }
+  
+  // Guardar los nuevos productos
   for (const producto of productos) {
     await store.put(producto)
   }
+  
+  console.log(`💾 Guardados ${productos.length} productos${almcnt ? ` para almacén ${almcnt}` : ''}, eliminados ${eliminados} productos anteriores`)
+  
   await tx.done
 }
 
-export async function obtenerProductosLocal() {
+export async function obtenerProductosLocal(almcnt = null) {
   const db = await getDB()
   const productos = await db.getAll(PRODUCTOS_STORE)
   
-  // Filtrar solo productos con stock > 0
-  return productos.filter(producto => producto.stock > 0)
+  // Filtrar por almacén específico (si se proporciona) y stock > 0
+  const productosFiltrados = productos.filter(producto => {
+    const hasStock = producto.stock > 0
+    const matchesAlmcnt = almcnt ? producto.almcnt === almcnt : true
+    return hasStock && matchesAlmcnt
+  })
+  
+  console.log(`📦 IndexedDB: ${productos.length} productos totales, ${productosFiltrados.length} filtrados${almcnt ? ` para almacén ${almcnt}` : ''} con stock > 0`)
+  
+  return productosFiltrados
 }
 
 export async function limpiarProductos() {

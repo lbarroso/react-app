@@ -25,6 +25,14 @@ export async function obtenerAlmcnt() {
   return session?.user.user_metadata?.almcnt ?? null
 }
 
+export async function obtenerNombreUsuario() {
+  const sesionLocal = await obtenerSesionIndexedDB()
+  if (sesionLocal?.name) return sesionLocal.name
+
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.user.user_metadata?.name || session?.user.email || 'Usuario'
+}
+
 export async function cerrarSesion() {
   await clearSesionIndexedDB()
   await supabase.auth.signOut()

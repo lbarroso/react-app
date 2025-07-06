@@ -44,6 +44,8 @@ export default function Dashboard () {
         cerrarSesion()
         return
       }
+      
+      console.log(`🏪 Cargando productos para almacén: ${almcnt}`);
 
       if (navigator.onLine) {
         const { data, error } = await supabase
@@ -56,10 +58,10 @@ export default function Dashboard () {
           console.error('Error al obtener productos:', error.message)
         } else {
           setProductos(data)
-          await guardarProductos(data)
+          await guardarProductos(data, almcnt)
         }
       } else {
-        const offline = await obtenerProductosLocal()
+        const offline = await obtenerProductosLocal(almcnt)
         setProductos(offline)
       }
     }
@@ -198,7 +200,20 @@ export default function Dashboard () {
 	  
       <main className="flex-1 px-4 pb-[76px]">
 
-        <h2 className="text-2xl font-semibold text-brandGreen mb-4" >Catálogo de Productos</h2>
+        <h2 className="text-2xl font-semibold text-brandGreen mb-2" >Catálogo de Productos</h2>
+        
+        {/* Contador de productos */}
+        <div className="mb-4 text-sm text-gray-600">
+          {productos.length > 0 ? (
+            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+              📦 {productos.length} productos disponibles
+            </span>
+          ) : (
+            <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
+              ⏳ Cargando productos...
+            </span>
+          )}
+        </div>
 
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {productosFiltrados.length

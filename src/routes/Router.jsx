@@ -7,6 +7,7 @@ import ConfigPage from '../pages/ConfigPage'
 import AdminDashboard from '../admin/pages/AdminDashboard'
 import CsvUpload from '../admin/pages/CsvUpload'
 import OrdersCsvExport from '../admin/pages/OrdersCsvExport'
+import AdminCatalog from '../admin/pages/AdminCatalog'
 import PrivateRoute from './PrivateRoute'
 
 export default function AppRouter() {
@@ -21,6 +22,7 @@ export default function AppRouter() {
         <Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
         <Route path="/admin/upload-csv" element={<PrivateRoute><CsvUpload /></PrivateRoute>} />
         <Route path="/admin/export-orders" element={<PrivateRoute><OrdersCsvExport /></PrivateRoute>} />
+        <Route path="/admin/catalog" element={<PrivateRoute><AdminCatalog /></PrivateRoute>} />
         <Route path="*" element={<Login />} />
       </Routes>
     </BrowserRouter>

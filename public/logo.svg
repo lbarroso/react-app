@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#235b4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#bc955c;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fondo circular -->
+  <circle cx="100" cy="100" r="95" fill="url(#gradient)" stroke="#fff" stroke-width="2"/>
+  
+  <!-- Iconos de pedidos -->
+  <g transform="translate(100, 100)" fill="#fff">
+    <!-- Caja principal -->
+    <rect x="-30" y="-25" width="60" height="50" rx="5" ry="5" fill="#fff" opacity="0.9"/>
+    
+    <!-- Líneas de texto en la caja -->
+    <rect x="-20" y="-15" width="40" height="3" rx="1" fill="#235b4e"/>
+    <rect x="-20" y="-8" width="30" height="3" rx="1" fill="#235b4e"/>
+    <rect x="-20" y="-1" width="35" height="3" rx="1" fill="#235b4e"/>
+    <rect x="-20" y="6" width="25" height="3" rx="1" fill="#235b4e"/>
+    
+    <!-- Checkmark -->
+    <path d="M 15 -5 L 25 5 L 35 -10" stroke="#bc955c" stroke-width="3" fill="none" stroke-linecap="round"/>
+    
+    <!-- Elementos decorativos -->
+    <circle cx="-45" cy="-45" r="8" fill="#fff" opacity="0.7"/>
+    <circle cx="45" cy="-45" r="6" fill="#fff" opacity="0.7"/>
+    <circle cx="-45" cy="45" r="5" fill="#fff" opacity="0.7"/>
+    <circle cx="45" cy="45" r="7" fill="#fff" opacity="0.7"/>
+  </g>
+  
+  <!-- Texto -->
+  <text x="100" y="170" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#235b4e">
+    PEDIDOS
+  </text>
+  <text x="100" y="190" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#bc955c">
+    OFFLINE
+  </text>
+</svg> 

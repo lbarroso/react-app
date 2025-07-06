@@ -49,7 +49,7 @@ export default function CarritoModal({ abierto, cerrar, carrito, setCarrito }) {
     try {
       // 1. Leemos todos los registros del carrito y los datos maestros de productos
       const items = await obtenerProductosDelCarrito()
-      const productos = await obtenerProductosLocal()
+      const productos = await obtenerProductosLocal(almcnt)
 
       // 2. Los combinamos para enriquecer con nombre, unit, image, code, etc.
       const itemsCompletos = items.map(item => {

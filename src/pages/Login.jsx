@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import { useNavigate } from 'react-router-dom'
 import { downloadAndCacheClients } from '../utils/client-operations'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
+import { guardarSesionExtendida } from '../utils/session'
 
 export default function Login() {
   const [email, setEmail]       = useState('')
@@ -41,7 +42,10 @@ export default function Login() {
       data: { almcnt: perfil.almcnt }
     })
 
-    // 4) Descargar y cachear clientes
+    // 4) Guardar sesión extendida con información del usuario
+    guardarSesionExtendida(data.session, perfil.almcnt)
+
+    // 5) Descargar y cachear clientes
     await downloadAndCacheClients(perfil.almcnt)
 
     // 6) Redirigimos al dashboard (el SDK ya persistirá la sesión)
