@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { FaUpload, FaUsers, FaChartBar, FaCog } from 'react-icons/fa'
+import { FaUpload, FaUsers, FaChartBar, FaCog, FaDownload } from 'react-icons/fa'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
@@ -14,6 +14,16 @@ export default function AdminDashboard() {
       route: '/admin/upload-csv',
       bgColor: 'bg-blue-500',
       hoverColor: 'hover:bg-blue-600'
+    },
+    {
+      id: 'export-orders',
+      title: 'Exportar Pedidos',
+      description: 'Descargar pedidos en formato CSV',
+      icon: FaDownload,
+      enabled: true,
+      route: '/admin/export-orders',
+      bgColor: 'bg-green-500',
+      hoverColor: 'hover:bg-green-600'
     },
     {
       id: 'users',
