@@ -2,6 +2,13 @@
 import QuantitySelector from './QuantitySelector';
 import { getProductImageSrc } from '../utils/getProductImage';
 
+// Definición limpia y reutilizable: un Set con todas las categorías “Canasta”
+const CANASTA_CATEGORIES = new Set([
+  1, 2, 3, 4, 5, 7, 8, 9, 10, 11,
+  12, 13, 25, 32, 36, 37, 38, 40,
+  42, 43, 62, 72
+])
+
 export default function ProductCard({
   producto,
   cantidad,
@@ -27,7 +34,11 @@ export default function ProductCard({
     }
   };
 
+  // Comprueba si esta categoría es “Canasta” de un sólo paso
+  const esCanasta = CANASTA_CATEGORIES.has(producto.category_id)
+
   return (
+
     <div className="bg-white rounded-lg shadow border border-gray-200 flex flex-col overflow-hidden">
       {/* Imagen */}
       <div className="relative">
@@ -38,9 +49,14 @@ export default function ProductCard({
           onError={handleImageError}
           className="w-full h-40 sm:h-44 md:h-48 object-cover bg-gray-light"
         />
-		{producto.stock <= 0 && (
-		  <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-semibold rounded-full px-2 py-0.5">
+		{ producto.stock <= 0 && (
+		  <div className="absolute top-2 right-2 bg-secondary text-white text-xs font-semibold rounded-full px-2 py-0.5">
 			Sin Stock
+		  </div>
+		)}
+		{ esCanasta && (
+		  <div className="absolute top-2 right-2 bg-green-accent text-white text-xs font-semibold rounded-full px-2 py-0.5">
+			🛒 Canasta
 		  </div>
 		)}
       </div>

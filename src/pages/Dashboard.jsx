@@ -51,8 +51,8 @@ export default function Dashboard () {
         const { data, error } = await supabase
           .from('products')
           .select('*')
-          .eq('almcnt', almcnt)
-          .gt('stock', 0)  // Solo productos con stock > 0
+          .eq('almcnt', almcnt) // todos los productos del almacén
+          .order('category_id', { ascending: true })
 
         if (error) {
           console.error('Error al obtener productos:', error.message)
@@ -120,10 +120,15 @@ export default function Dashboard () {
     }
   }
 
-  const productosFiltrados = productos.filter(p =>
-    (p.name?.toLowerCase().includes(busqueda.toLowerCase())) ||
-    (p.code?.toLowerCase().includes(busqueda.toLowerCase()))
+  const productosFiltrados = productos
+    // primero solo los que tienen stock > 0
+    .filter(p => p.stock > 0)
+    // luego el filtro de búsqueda
+    .filter(p =>
+      p.name?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      p.code?.toLowerCase().includes(busqueda.toLowerCase())
   )
+  const productosDisponibles = productos.filter(p => p.stock > 0).length;
 
   const totalEnCarrito = Object.values(carrito).reduce((suma, cant) => suma + cant, 0)
   
@@ -198,7 +203,7 @@ export default function Dashboard () {
       {/* separador para el header */}
       <div className="pt-[112px]" />
 	  
-      <main className="flex-1 px-4 pb-[76px]">
+      <main className="flex-1 px-4 pb-[76px] pt-4">
 
         <h2 className="text-2xl font-semibold text-brandGreen mb-2" >Catálogo de Productos</h2>
         
@@ -206,7 +211,7 @@ export default function Dashboard () {
         <div className="mb-4 text-sm text-gray-600">
           {productos.length > 0 ? (
             <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
-              📦 {productos.length} productos disponibles
+              📦 {productosDisponibles} productos disponibles
             </span>
           ) : (
             <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
@@ -233,26 +238,29 @@ export default function Dashboard () {
       </main>
 
       {/* FOOTER móvil */}
-		<footer className="fixed bottom-0 inset-x-0 z-50 bg-green-accent border-t shadow">
+      <footer className="fixed bottom-0 inset-x-0 z-50 bg-green-accent border-t shadow">
+        <nav className="flex justify-around py-2 text-xs text-white">
+          {[
+            ['🛠️', 'Admin', '/admin'],
+            ['🏷️', 'Ofertas', ''],
+            ['🆕', 'Novedades', '']
+          ].map(([icon, label, to]) => {
 
-		  <nav className="flex justify-around py-2 text-xs text-white">
-			{[
-			  ['🏠', 'Adamin', '/admin'],
-			  ['🔍', 'Ofertas', ''],
-			  ['🛒', 'Novedades', ''],
-			  ['👤', 'Cuenta', ''],  // <─ añadimos la ruta aquí
-			].map(([icon, label, to]) => (
-			  <button
-				key={label}
-				onClick={() => navigate(to)}
-				className="flex flex-col items-center gap-1"
-			  >
-				<span className="text-lg">{icon}</span>
-				<span>{label}</span>
-			  </button>
-			))}
-		  </nav>
-		</footer>
+            // Resto de botones normales
+            return (
+              <button
+                key={label}
+                className="flex flex-col items-center gap-1"
+                onClick={() => navigate(to)}
+              >
+                <span className="text-lg">{icon}</span>
+                <span>{label}</span>
+              </button>
+            )
+          })}
+        </nav>
+      </footer>
+
 
       <CarritoModal
         abierto={modalAbierto}
